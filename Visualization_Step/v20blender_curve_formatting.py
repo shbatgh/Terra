@@ -3,7 +3,7 @@
 
 import time
 import sys
-sys.path.append('C:/Users/areil/Desktop/Germarium_Visualization/Code/Intermediate_segmentation_analysis')
+sys.path.append('C:/Users/areil/Desktop/Germarium_Visualization/Code/Intermediate_segmentation_analysis')       #PATH TO FOLDER
 
 """
 {frame_num:[{(color):[[[x,y], [x,y], [x,y], [x,y], [x,y], [x,y], [x,y], [x,y]], 
@@ -21,7 +21,6 @@ sys.path.append('C:/Users/areil/Desktop/Germarium_Visualization/Code/Intermediat
 
 
 
-import v10group_segmentations
 import v20group_segmentations_adjusted
 import v10order_group               #group = v10order_group.main(group)
 

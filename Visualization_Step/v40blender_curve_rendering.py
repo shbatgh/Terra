@@ -2,46 +2,16 @@
 import bpy
 import ast
 
+color_list = [(255,0,0), (0,255,0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (255, 100, 0)]
 
-
-red = bpy.data.materials.new("Red")
-red.use_nodes = True
-principled = red.node_tree.nodes['Principled BSDF']
-principled.inputs['Base Color'].default_value = (1,0,0,1)
-
-green = bpy.data.materials.new("Green")
-green.use_nodes = True
-principled = green.node_tree.nodes['Principled BSDF']
-principled.inputs['Base Color'].default_value = (0,1,0,1)
-
-blue = bpy.data.materials.new("Blue")
-blue.use_nodes = True
-principled = blue.node_tree.nodes['Principled BSDF']
-principled.inputs['Base Color'].default_value = (0,0,1,1)
-
-yellow = bpy.data.materials.new("Yellow")
-yellow.use_nodes = True
-principled = yellow.node_tree.nodes['Principled BSDF']
-principled.inputs['Base Color'].default_value = (1,1,0,1)
-
-purple = bpy.data.materials.new("Purple")
-purple.use_nodes = True
-principled = purple.node_tree.nodes['Principled BSDF']
-principled.inputs['Base Color'].default_value = (1,0,1,1)
-
-cyan = bpy.data.materials.new("Cyan")
-cyan.use_nodes = True
-principled = cyan.node_tree.nodes['Principled BSDF']
-principled.inputs['Base Color'].default_value = (0,1,1,1)
-
-orange = bpy.data.materials.new("Orange")
-orange.use_nodes = True
-principled = orange.node_tree.nodes['Principled BSDF']
-principled.inputs['Base Color'].default_value = (1,0.25,0,1)
-
-color_dict = {(255,0,0):red, (0,255,0):green, (0, 0, 255):blue, (255, 255, 0):yellow, (255, 0, 255):purple, (0, 255, 255):cyan, (255, 100, 0):orange}
-
-
+color_dict = {}
+for color in color_list:
+    converted_rgb = (color[0]/255, color[1]/255, color[2]/255, 1)
+    cur_var = bpy.data.materials.new(str(color))
+    cur_var.use_nodes = True
+    principled = cur_var.node_tree.nodes['Principled BSDF']
+    principled.inputs['Base Color'].default_value = converted_rgb
+    color_dict[color] = cur_var
 
 
 frames_per_time_point = 10 
@@ -61,18 +31,10 @@ def add_curve(coords, name, slice, frame, color):
         x,y = coord
         z = frames[frame].index(slice)/0.198    #Multiply by 3/0.198????
         polyline.points[i].co = (x, y, z, 1)
-
-
     
-
-    # create Object
-    curveOB = bpy.data.objects.new(name, curveData)
-
-    #add texture (color)
-    curveOB.data.materials.append(color_dict[color])
-
-    #add to collection
-    cur_frame_col.objects.link(curveOB)
+    curveOB = bpy.data.objects.new(name, curveData)         # create Object
+    curveOB.data.materials.append(color_dict[color])        #add texture (color)
+    cur_frame_col.objects.link(curveOB)                     #add to collection
 
     #Animation keyframes
     show_frame = frame*frames_per_time_point
@@ -90,17 +52,12 @@ with open('C:/Users/areil/Desktop/Germarium_Visualization/Code/Visualization/ble
 
 frames = ast.literal_eval(data)
 
-
-
-
 for frame_num in frames.keys():
     cur_frame_col = bpy.data.collections.new('frame'+str(frame_num))
     scene_col = bpy.context.scene.collection
     scene_col.children.link(cur_frame_col)
     for slice in frames[frame_num]:
         for color in slice.keys():
-            #if color == (0, 255, 0):
-                #continue
             for group in slice[color]:
                 name = 'f'+str(frame_num+1)+'_s'+str(frames[frame_num].index(slice))+'_c'+str(color)+'_g'+str(slice[color].index(group))        #frame, slice, color, group
                 add_curve(coords=group, name=name, slice=slice, frame=frame_num, color=color)

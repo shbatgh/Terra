@@ -96,21 +96,22 @@ def group_cell_segmentations(color):
     return(color_groups)
 
 
-def group_germarium():
+def group_large(color):         #Puts all pixels of a single color in a group, regards all pixels of that color as the same structure/cell
     group = []
     for x in range(width):
         for y in range(height):
-            if pix[x,y][:3] == germarium_color:
+            if pix[x,y][:3] == color:
                 group.append([x-reference_point[0],y-reference_point[1]])
     return(group)
 
 
 def format_data():
     global grouped_segmentations
-    for color in cell_colors:
+    for color in recursive_colors:
         grouped_segmentations[color] = group_cell_segmentations(color)
         print("color", color, "finished")
-    grouped_segmentations[germarium_color] = [group_germarium()]
+    for color in brute_force_colors:
+        grouped_segmentations[color] = [group_large(color)]
 
 #Sample imgs: 'C:/Users/areil/Desktop/Germarium_Visualization/Images/Sample_Stacks/3-01.png'
 
@@ -132,9 +133,9 @@ width, height = img.size
 
 
 #(255, 0, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255)
-cell_colors = [(255, 0, 0), (0, 0, 255), (255, 0, 255), (0, 255, 255), (255, 255, 0), (255, 100, 0)]   #Later, this should be the ouput of determine_colors.py.   (255, 255, 0) was taken out.
+recursive_colors = [(255, 0, 0), (0, 0, 255), (255, 0, 255), (0, 255, 255), (255, 255, 0), (255, 100, 0)]   #Later, this should be the ouput of determine_colors.py.   (255, 255, 0) was taken out.
 
-germarium_color = (0, 255, 0)
+brute_force_colors = [(0, 255, 0)]
 reference_cell_color = (255, 255, 0)
 
 grouped_segmentations = {}
