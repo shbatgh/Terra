@@ -2,7 +2,8 @@
 #formats data from the grouping segmentations stacks so that blender can understand
 
 import time
-import sys
+import os
+#import sys
 #sys.path.append('C:/Users/areil/Desktop/Germarium_Visualization/Code/Intermediate_segmentation_analysis')       #PATH TO FOLDER
 
 """
@@ -39,7 +40,7 @@ z_multiplier = pixel_dim[1]/pixel_dim[0]        #can by a constant to expand the
 #Division at 't23', 't24', 't25'
 
 output_file_name = 'blender_animation1.txt'
-stack_paths = ['t' + str(i) for i in range(1,47)]   #47 for animation 1
+stack_paths = ['t' + str(i) for i in range(1,3)]   #47 for animation 1
 frames = {}
 
 total_start_time = time.time()
@@ -58,5 +59,10 @@ for frame_num in range(len(stack_paths)):
 
 with open(output_file_name, 'w') as f:
     f.write(str(frames))
+
+
+print("\nAbsolute path to "+ output_file_name)
+print(os.path.abspath(output_file_name))
+
 
 print("\ntotal blender (curve & adjusted) formatting runtime: ", time.time()-total_start_time)

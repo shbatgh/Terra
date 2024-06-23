@@ -2,7 +2,7 @@
 import bpy
 import ast
 
-data_file_path = 'C:/Users/areil/Desktop/Germarium_Visualization/Code/Visualization/blender_format_adjusted_Animation1.txt'     #Remember to use backslashes instead of forward slashes
+data_file_path = 'blender_animation1.txt'     #Remember to use backslashes instead of forward slashes
 color_list = [(255,0,0), (0,255,0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (255, 100, 0)]
 
 color_dict = {}

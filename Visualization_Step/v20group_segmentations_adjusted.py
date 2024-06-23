@@ -23,21 +23,20 @@ Grouped segmentations:
 
 """
 
-path_start = 'C:/Users/areil/Desktop/Germarium_Visualization/Images/Animation1'                         #'C:/Users/areil/Desktop/Germarium_Visualization/Images/Animation1'
-stack_path = 't1'
+folder_name = 'Animation1'
 path_end = '.png'
 
-sys.path.append(stack_path)
+#path_start = 'C:/Users/areil/Desktop/Germarium_Visualization/Images/Animation1'                         #'C:/Users/areil/Desktop/Germarium_Visualization/Images/Animation1'
+stack_path = 't1'
 
 img_stack = [str(i) for i in range(1,16)]   #[str(i) for i in range(1,16)]
 
+sys.path.append(stack_path)
 
 
 
-img = Image.open(path_start+'/'+stack_path+'/'+str(img_stack[0])+path_end)          #Make sure the same size???
-pix = img.load()
-
-width, height = img.size
+width = 0           #Gets changed in main()         All images must be the same size
+height = 0
 
 
 #(255, 0, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255)
@@ -52,7 +51,7 @@ reference_adjust = True         #False: no adjusting
 
 def find_reference_point():
     for slice_num in img_stack:
-        img = Image.open(path_start+'/'+stack_path+'/'+slice_num+path_end)
+        img = Image.open(folder_name+'/'+stack_path+'/'+slice_num+path_end)
         pix = img.load()
         reference_cell_x = []
         reference_cell_y = []
@@ -154,14 +153,24 @@ reference_point = [0,0]
 
 
 def main(path):
+    start_time = time.time()
+
     global stack_path
     global pix
     global grouped_segmentations
     global checked_points
     global reference_point
+    global width
+    global height
+
     segmented_stack = []
-    start_time = time.time()
+    
     stack_path = path
+    sys.path.append(stack_path)
+    img = Image.open(folder_name+'/'+stack_path+'/'+str(img_stack[0])+path_end)          #Make sure the same size???
+    pix = img.load()
+
+    width, height = img.size
     
     if reference_adjust:
         reference_point = find_reference_point()
@@ -173,7 +182,7 @@ def main(path):
         
         grouped_segmentations = {}
         checked_points = []
-        img = Image.open(path_start+'/'+stack_path+'/'+slice_num+path_end)
+        img = Image.open(folder_name+'/'+stack_path+'/'+slice_num+path_end)
         pix = img.load()
 
         format_data()
