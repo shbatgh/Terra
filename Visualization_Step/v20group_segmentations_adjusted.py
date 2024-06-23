@@ -23,6 +23,33 @@ Grouped segmentations:
 
 """
 
+path_start = 'C:/Users/areil/Desktop/Germarium_Visualization/Images/Animation1'                         #'C:/Users/areil/Desktop/Germarium_Visualization/Images/Animation1'
+stack_path = 't1'
+path_end = '.png'
+
+sys.path.append(stack_path)
+
+img_stack = [str(i) for i in range(1,16)]   #[str(i) for i in range(1,16)]
+
+
+
+
+img = Image.open(path_start+'/'+stack_path+'/'+str(img_stack[0])+path_end)          #Make sure the same size???
+pix = img.load()
+
+width, height = img.size
+
+
+#(255, 0, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255)
+recursive_colors = [(255, 0, 0), (0, 0, 255), (255, 0, 255), (0, 255, 255), (255, 255, 0), (255, 100, 0)]   #(255, 255, 0) was taken out.
+
+brute_force_colors = [(0, 255, 0)]
+reference_cell_color = (255, 255, 0)
+reference_adjust = True         #False: no adjusting
+
+
+
+
 def find_reference_point():
     for slice_num in img_stack:
         img = Image.open(path_start+'/'+stack_path+'/'+slice_num+path_end)
@@ -36,7 +63,8 @@ def find_reference_point():
                     reference_cell_y.append(y)
         if len(reference_cell_x) != 0:
             return([int(sum(reference_cell_x) / len(reference_cell_x)), int(sum(reference_cell_y) / len(reference_cell_y))])
-    print("Something went wrong")
+    print("No Reference Cell Found!")
+    return([0,0])
 
 
 def get_surrounding_colored_points(point_coords, color):                       #returns dictionary: {[*x,y*]: (*color*), [*x,y*]: (*color*), [*x,y*]: (*color*)}
@@ -115,28 +143,7 @@ def format_data():
 
 #Sample imgs: 'C:/Users/areil/Desktop/Germarium_Visualization/Images/Sample_Stacks/3-01.png'
 
-path_start = 'C:/Users/areil/Desktop/Germarium_Visualization/Images/Animation1'                         #'C:/Users/areil/Desktop/Germarium_Visualization/Images/Animation1'
-stack_path = 't1'
-path_end = '.png'
 
-sys.path.append(stack_path)
-
-img_stack = ['1','2','3','4','5','6','7','8','9','10','11','12','13','14','15']   #'1','2','3','4','5','6','7','8','9','10','11','12','13','14','15', '16'
-
-
-
-
-img = Image.open(path_start+'/'+stack_path+'/'+str(img_stack[0])+path_end)          #Make sure the same size???
-pix = img.load()
-
-width, height = img.size
-
-
-#(255, 0, 0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255)
-recursive_colors = [(255, 0, 0), (0, 0, 255), (255, 0, 255), (0, 255, 255), (255, 255, 0), (255, 100, 0)]   #Later, this should be the ouput of determine_colors.py.   (255, 255, 0) was taken out.
-
-brute_force_colors = [(0, 255, 0)]
-reference_cell_color = (255, 255, 0)
 
 grouped_segmentations = {}
 checked_points = []
@@ -144,7 +151,7 @@ checked_points = []
 segmented_stack = []
 reference_point = [0,0]
 
-reference_adjust = True         #False: no adjusting       Try true, 
+
 
 def main(path):
     global stack_path

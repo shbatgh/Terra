@@ -2,6 +2,7 @@
 import bpy
 import ast
 
+data_file_path = 'C:/Users/areil/Desktop/Germarium_Visualization/Code/Visualization/blender_format_adjusted_Animation1.txt'     #Remember to use backslashes instead of forward slashes
 color_list = [(255,0,0), (0,255,0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (255, 100, 0)]
 
 color_dict = {}
@@ -47,7 +48,7 @@ def add_curve(coords, name, slice, frame, color):
     curveOB.keyframe_insert(data_path = "hide_viewport",frame = show_frame + frames_per_time_point)
 
 
-with open('C:/Users/areil/Desktop/Germarium_Visualization/Code/Visualization/blender_format_adjusted_Animation1.txt', 'r') as f:   #blender_format_adjusted or blender_format
+with open(data_file_path, 'r') as f:   #blender_format_adjusted or blender_format
     data = f.read()
 
 frames = ast.literal_eval(data)

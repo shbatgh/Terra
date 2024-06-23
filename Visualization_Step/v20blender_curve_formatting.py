@@ -3,7 +3,7 @@
 
 import time
 import sys
-sys.path.append('C:/Users/areil/Desktop/Germarium_Visualization/Code/Intermediate_segmentation_analysis')       #PATH TO FOLDER
+#sys.path.append('C:/Users/areil/Desktop/Germarium_Visualization/Code/Intermediate_segmentation_analysis')       #PATH TO FOLDER
 
 """
 {frame_num:[{(color):[[[x,y], [x,y], [x,y], [x,y], [x,y], [x,y], [x,y], [x,y]], 
@@ -24,6 +24,7 @@ sys.path.append('C:/Users/areil/Desktop/Germarium_Visualization/Code/Intermediat
 import v20group_segmentations_adjusted
 import v10order_group               #group = v10order_group.main(group)
 
+from v20group_segmentations_adjusted import brute_force_colors
 
 
 pixel_dim = (0.198, 3) # In microns, dif between the x and y, and between z stacks
@@ -37,7 +38,7 @@ z_multiplier = pixel_dim[1]/pixel_dim[0]        #can by a constant to expand the
 
 #Division at 't23', 't24', 't25'
 
-
+output_file_name = 'blender_animation1.txt'
 stack_paths = ['t' + str(i) for i in range(1,47)]   #47 for animation 1
 frames = {}
 
@@ -48,14 +49,14 @@ for frame_num in range(len(stack_paths)):
     for slice in cur_segmented_stack:
         for color in slice.keys():
             for group in slice[color]:
-                if color == (0, 255, 0):
+                if color in brute_force_colors:
                     cur_segmented_stack[cur_segmented_stack.index(slice)][color][slice[color].index(group)] = v10order_group.main(group)
                     #pass
     frames[frame_num] = cur_segmented_stack.copy()
 
 
 
-with open('blender_format_adjusted_Animation1.txt', 'w') as f:
+with open(output_file_name, 'w') as f:
     f.write(str(frames))
 
 print("\ntotal blender (curve & adjusted) formatting runtime: ", time.time()-total_start_time)
