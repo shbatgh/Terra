@@ -22,10 +22,10 @@ import os
 
 
 
-import v20group_segmentations_adjusted
+import v30group_segmentations_adjusted
 import v10order_group               #group = v10order_group.main(group)
 
-from v20group_segmentations_adjusted import brute_force_colors
+from v30group_segmentations_adjusted import brute_force_colors
 
 
 pixel_dim = (0.198, 3) # In microns, dif between the x and y, and between z stacks
@@ -40,13 +40,13 @@ z_multiplier = pixel_dim[1]/pixel_dim[0]        #can by a constant to expand the
 #Division at 't23', 't24', 't25'
 
 output_file_name = 'blender_animation1.txt'
-stack_paths = ['t' + str(i) for i in range(1,3)]   #47 for animation 1
+stack_paths = ['t' + str(i) for i in range(1,2)]   #47 for animation 1
 frames = {}
 
 total_start_time = time.time()
 
 for frame_num in range(len(stack_paths)):
-    cur_segmented_stack = v20group_segmentations_adjusted.main(stack_paths[frame_num])       #used to use v10group_segmentations, now use v20group_segmentations_adjusted
+    cur_segmented_stack = v30group_segmentations_adjusted.main(stack_paths[frame_num])       #used to use v10group_segmentations, now use v20group_segmentations_adjusted
     for slice in cur_segmented_stack:
         for color in slice.keys():
             for group in slice[color]:
