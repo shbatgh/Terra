@@ -171,6 +171,7 @@ def main(path):
     pix = img.load()
 
     width, height = img.size
+    print(width, height)
     
     if reference_adjust:
         reference_point = find_reference_point()

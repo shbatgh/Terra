@@ -30,7 +30,7 @@ def add_curve(coords, name, slice, frame, color):
     polyline.points.add(len(coords))
     for i, coord in enumerate(coords):
         x,y = coord
-        z = frames[frame].index(slice)/0.198    #Multiply by 3/0.198????
+        z = frames[frame].index(slice)*(3/0.198)/2    #Multiply by 3/0.198????
         polyline.points[i].co = (x, y, z, 1)
     
     curveOB = bpy.data.objects.new(name, curveData)         # create Object
@@ -60,7 +60,7 @@ for frame_num in frames.keys():
     for slice in frames[frame_num]:
         for color in slice.keys():
             for group in slice[color]:
-                name = 'f'+str(frame_num+1)+'_s'+str(frames[frame_num].index(slice))+'_c'+str(color)+'_g'+str(slice[color].index(group))        #frame, slice, color, group
+                name = 'f'+str(frame_num)+'_s'+str(frames[frame_num].index(slice))+'_c'+str(color)+'_g'+str(slice[color].index(group))        #frame, slice, color, group
                 add_curve(coords=group, name=name, slice=slice, frame=frame_num, color=color)
 
 

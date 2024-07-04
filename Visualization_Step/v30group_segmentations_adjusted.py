@@ -73,7 +73,7 @@ def add_to_dict(dict, color, group):
         dict[color] = [group]
 
 def find_color(group, slice_num):           #Does not distinguish between frames
-    img = Image.open('C:/Users/areil/Desktop/Sam Segmentation/test_images/'+str(slice_num)+'_outlines.png')
+    img = Image.open('C:/Users/areil/Desktop/Sam Segmentation/cellpose output/outlines/'+str(slice_num)+'_outlines.png')
     pix = img.load()
     color = pix[group[0][0],group[0][1]][:3]
     return(color)
@@ -86,7 +86,8 @@ def line_to_group(line):
 
 def get_AI_groups(slice_num):
     slice_dict = {}
-    f = open('C:/Users/areil/Desktop/Sam Segmentation/test_images/'+str(slice_num)+'_cp_outlines.txt', "r")          #Groups come from segmentation data
+    #C:/Users/areil/Desktop/Sam Segmentation/cellpose output/txt_outlines
+    f = open('C:/Users/areil/Desktop/Sam Segmentation/cellpose output/txt_outlines/'+str(slice_num)+'_cp_outlines.txt', "r")          #Groups come from segmentation data
     for line in f:
         cur_group = line_to_group(line)
         cur_color = find_color(cur_group, slice_num)
