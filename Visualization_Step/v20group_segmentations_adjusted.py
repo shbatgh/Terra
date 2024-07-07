@@ -9,14 +9,14 @@ Grouped segmentations:
 {                                                                                                       <-- Z_slice
     (*color*): [                                                                                        <-- certain color
         [[*x, y*], [*x, y*], [*x, y*], [*x, y*], [*x, y*]],                                             <-- grouped segmentation points for that color
-        [[*x, y*], [*x, y*]] 
+        [[*x, y*], [*x, y*]], 
         [[*x, y*], [*x, y*], [*x, y*], [*x, y*], [*x, y*], [*x, y*]]
     ] 
 
     
     (*color2*): [
         [[*x, y*], [*x, y*], [*x, y*], [*x, y*], [*x, y*], [*x, y*], [*x, y*], [*x, y*], [*x, y*], [*x, y*]], 
-        [[*x, y*], [*x, y*], [*x, y*], [*x, y*], [*x, y*]]
+        [[*x, y*], [*x, y*], [*x, y*], [*x, y*], [*x, y*]],
         [[*x, y*], [*x, y*], [*x, y*], [*x, y*]]
     ] 
 }
