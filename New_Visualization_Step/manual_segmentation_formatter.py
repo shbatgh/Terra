@@ -153,49 +153,7 @@ def prepare_manual_data(path_to_timepoints, recursive_colors, brute_force_colors
 #Iterate through each timepoint, find the manually drawn cell or even point, put that in a list
 #PUT BELOW to pre phase
 
-def find_image_dimensions(path_to_timepoints):
-    sample_img = Image.open(path_to_timepoints+'/t1/1.png')            #CHANGE IF MAKING THE IMAGE NAMES CHANGEABLE
-    width, height = sample_img.size
-    return([width, height])
 
-def find_reference_points(path_to_timepoints, number_of_timepoints, number_of_slices, path_end, reference_point_color, image_dimensions):
-    print("Finding reference points on timepoints: ", end='')
-    width, height = image_dimensions[0], image_dimensions[1]
-    reference_point_list = []
-    for tp_num in range(number_of_timepoints):
-        print(str(tp_num+1) + ' ', end='')
-        ref_point_found = False
-        
-        for slice_num in range(number_of_slices):
-            if ref_point_found:
-                continue
-            cur_img = Image.open(path_to_timepoints+'/t'+str(tp_num+1)+'/'+str(slice_num+1)+path_end)
-            pix = cur_img.load()
-            reference_cell_x, reference_cell_y = [], []
-
-            for x in range(width):
-                for y in range(height):
-                    if (pix[x,y][:3] == reference_point_color):
-                        reference_cell_x.append(x)
-                        reference_cell_y.append(y)
-            if len(reference_cell_x) != 0:
-                reference_point_list.append([int(sum(reference_cell_x) / len(reference_cell_x)), int(sum(reference_cell_y) / len(reference_cell_y))])
-                ref_point_found = True
-
-        if not ref_point_found: 
-            print("No reference point found on timepoint t" + str(tp_num+1))
-            reference_point_list.append([0,0])
-    print("\n")
-    return(reference_point_list)
-
-img_dims = find_image_dimensions(path_to_timepoints='C:/Users/areil/Desktop/Germarium_Visualization/Images/Animation1')
-
-ref_list = find_reference_points(path_to_timepoints='C:/Users/areil/Desktop/Germarium_Visualization/Images/Animation1',
-                                 number_of_timepoints=4,
-                                 number_of_slices=15,
-                                 path_end='.png',
-                                 reference_point_color=(255,255,0),
-                                 image_dimensions=img_dims)
 
 frame_dict, manual_time_taken = prepare_manual_data(path_to_timepoints='C:/Users/areil/Desktop/Germarium_Visualization/Images/Animation1',
                                            recursive_colors=[(255,0,0), (0,0,255), (255,255,0), (255,0,255), (0,255,255), (255,100,0)],

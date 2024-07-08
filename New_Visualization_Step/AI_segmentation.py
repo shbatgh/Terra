@@ -4,7 +4,7 @@ from cellpose.io import save_masks
 
 import os
 
-import inspect
+#import inspect
 print("AI imports done")
 
 
