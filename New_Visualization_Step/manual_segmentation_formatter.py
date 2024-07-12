@@ -1,8 +1,9 @@
 """
 This code converts the self segmented images to the output dictionary given:
-    - Reference point
+    - Reference points
     - Path to timepoints
     - Colors on draw image (recursive and brute-force)
+    - Number of timepoints and slices
 
 Assuming:
     - Timepoints are labeled    t1, t2, ...,    tn
@@ -18,12 +19,12 @@ import time
 from PIL import Image
 import sys
 
+import large_group_sorter
+
 sys.setrecursionlimit(1500)
 
 
-
 def get_surrounding_colored_points(pix, point_coords, color):                       #returns dictionary: {[*x,y*]: (*color*), [*x,y*]: (*color*), [*x,y*]: (*color*)}
-    #check is color is in list or tuple form
     coords1 = [point_coords[0] - 1, point_coords[1] - 1]
     coords2 = [point_coords[0] - 1, point_coords[1]]
     coords3 = [point_coords[0] - 1, point_coords[1] + 1]
@@ -45,14 +46,12 @@ def get_surrounding_colored_points(pix, point_coords, color):                   
         coord_color = pix[cur_x, cur_y][:3]
         if coord_color == color:
             surrounding_points.append(coord)
-            #print("Found surrounding point")
     return(surrounding_points)
 
 
 def recursively_add_points(pix, point_list, point_coords, color, recursion_num, fin_p_list, reference_point, checked_points):
     if point_coords in point_list:
         return None
-    #print("recursion:", recursion_num)
     point_list.append(point_coords)
     fin_p_list.append([point_coords[0]-reference_point[0], point_coords[1]-reference_point[1]])
     checked_points.append(point_coords)
@@ -92,6 +91,8 @@ def group_large(pix, color, reference_point):         #Puts all pixels of a sing
         for y in range(height):
             if pix[x,y][:3] == color:
                 group.append([x-reference_point[0],y-reference_point[1]])
+    if sort:
+        group = large_group_sorter.sort_group(group)
     return(group)
 
 
@@ -105,7 +106,6 @@ def format_slice(slice_path, reference_point):
 
     for color in r_colors:
         slice_dict[color] = group_cell_segmentations(pix, color, reference_point, checked_points)
-        print("color", color, "finished")
     for color in bf_colors:
         slice_dict[color] = [group_large(pix, color, reference_point)]
     return(slice_dict)
@@ -114,85 +114,61 @@ def format_slice(slice_path, reference_point):
 
 
 def format_stack(timepoint, reference_point):                #timepoint is the path to the stack
+    print("Stack " + timepoint)
     stack_list=[]
     for slice_num in range(n_slices):          #slices are numbered 1 through n
-        cur_slice = format_slice(slice_path=tp_path+'/'+timepoint+'/'+str(slice_num)+p_end,
+        cur_slice = format_slice(slice_path=tp_path+'/'+timepoint+'/'+str(slice_num+1)+p_end,
                                  reference_point=reference_point)
         stack_list.append(cur_slice)
+    return(stack_list)
         
 
 
 
-def main(path_to_timepoints, recursive_colors, brute_force_colors, number_of_timepoints, number_of_slices, reference_point_list, path_end):
+def prepare_manual_data(path_to_timepoints, recursive_colors, brute_force_colors, number_of_timepoints, number_of_slices, reference_point_list, path_end, image_dimensions, sort_large_groups):
     start_manual_time = time.time()
+    print("Preparing Manual Data")
 
     global tp_path, p_end
     tp_path, p_end = path_to_timepoints, path_end
-    global r_colors, bf_colors
-    r_colors, bf_colors = recursive_colors, brute_force_colors
+    global r_colors, bf_colors, sort
+    r_colors, bf_colors, sort = recursive_colors, brute_force_colors, sort_large_groups
     global n_slices
     n_timepoints, n_slices = number_of_timepoints, number_of_slices
     global width, height
-    sample_img = Image.open(tp_path+'/t1/1.png')            #CHANGE IF MAKING THE IMAGE NAMES CHANGEABLE
-    width, height = sample_img.size
+    width, height = image_dimensions[0], image_dimensions[1]
+
 
     frame_dict = {}
     for tp_num in range(n_timepoints):
-        cur_refp=reference_point_list[tp_num-1]
-        cur_stack = format_stack(timepoint='t'+str(tp_num),              
+        cur_refp=reference_point_list[tp_num]
+        cur_stack = format_stack(timepoint='t'+str(tp_num+1),              
                                  reference_point=cur_refp)        #add to dict which houses stacks (frames)
         frame_dict[tp_num] = cur_stack
 
     manual_time_taken = time.time()-start_manual_time
     return(frame_dict, manual_time_taken)
 
-"""
-def main(path):
-    start_time = time.time()
 
-    global stack_path
-    global pix
-    global grouped_segmentations
-    global checked_points
-    global reference_point
-    global width
-    global height
-
-    segmented_stack = []
-    
-    stack_path = path
-    sys.path.append(stack_path)
-    img = Image.open(folder_name+'/'+stack_path+'/'+str(img_stack[0])+path_end)          #Make sure the same size???
-    pix = img.load()
-
-    width, height = img.size
-    
-    if reference_adjust:
-        reference_point = find_reference_point()
-        print("Reference point:", reference_point)
-
-    for slice_num in img_stack:
-        print("\n\nSlice:", slice_num)
-        #print(path_start+'/'+stack_path+'/'+slice_num+path_end)
-        
-        grouped_segmentations = get_AI_groups(slice_num)
-        checked_points = []
-        img = Image.open(folder_name+'/'+stack_path+'/'+slice_num+path_end)
-        pix = img.load()
-
-        #format_data()
-        segmented_stack.append(grouped_segmentations.copy())
-        #print("slice", slice_num, "finished.")
+#Iterate through each timepoint, find the manually drawn cell or even point, put that in a list
+#PUT BELOW to pre phase
 
 
 
+frame_dict, manual_time_taken = prepare_manual_data(path_to_timepoints='C:/Users/areil/Desktop/Germarium_Visualization/Images/Animation1',
+                                           recursive_colors=[(255,0,0), (0,0,255), (255,255,0), (255,0,255), (0,255,255), (255,100,0)],
+                                           brute_force_colors=[(0, 255, 0)],
+                                           number_of_timepoints=4,
+                                           number_of_slices=15,
+                                           reference_point_list=ref_list,
+                                           path_end='.png',
+                                           image_dimensions=img_dims,
+                                           sort_large_groups=True)
 
-    end_time = time.time()
-    print("\nstack", stack_path, "runtime:", end_time-start_time)
 
-    #with open('v20group_segmentations_adjusted output', 'w') as f:
-        #f.write(str(segmented_stack))
+print("Manual data formatting time taken: " + str(manual_time_taken))
+with open('manual_data.txt', 'w') as f:
+        f.write(str(frame_dict))
 
-    return(segmented_stack)
 
-    """
+#"C:/Users/areil/Desktop/Terra/New_Visualization_Step/manual_data.txt"
