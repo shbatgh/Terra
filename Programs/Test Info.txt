@@ -1,0 +1,8 @@
+Test 1: Trying pre visualization phase (timepoints 1-10)
+
+Test 2: All timepoints, seg_parameters middle = 0.3
+
+Test 3: Test 2 was too laggy, I need to lower the middle seg parameter tso get less cells, trying 0.15. Just ai segmentations
+
+https://blender.stackexchange.com/questions/26898/how-to-create-a-folder-file-dialog/26906#26906
+
