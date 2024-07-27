@@ -1,4 +1,11 @@
 """
+Notes:
+Color map on x and y coords. Center of a cell determines the cell color. Regard it as the same cell based on centers. How will user fix any mistake?
+
+Try applying AI segmentation on maunal segs, to get complete, sorted wireframes
+
+Speed should be found in blender. Should be able to fix by making a segmentation a certain color.
+
 """
 import time
 from PIL import Image
@@ -15,6 +22,8 @@ def find_color(timepoint, coords, slice_num):           #Does not distinguish be
     pix = img.load()
     color = pix[int(coords[0]),int(coords[1])][:3]
     return(color)
+
+#def make_color()
 
 def line_to_group(line, reference_point):
     group = [[int(line[i]) - reference_point[0], int(line[i+1])- reference_point[1]] for i in range(0, len(line), 2)]       #Adjusted to reference
