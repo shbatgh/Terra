@@ -2,7 +2,8 @@
 import bpy
 import ast
 
-data_file_path = "C:/Users/areil/Desktop/Terra/Visualization_Step/blender_animation1.txt"     #Remember to use backslashes instead of forward slashes
+#"C:/Users/areil/Desktop/Terra/Visualization_Step/blender_animation1.txt" 
+data_file_path = "C:/Users/areil/Desktop/Terra/New_Visualization_Step/Vis2_withProcesses_manual_data.txt"     #Remember to use backslashes instead of forward slashes
 color_list = [(255,0,0), (0,255,0), (0, 0, 255), (255, 255, 0), (255, 0, 255), (0, 255, 255), (255, 100, 0)]
 
 color_dict = {}
@@ -59,6 +60,8 @@ for frame_num in frames.keys():
     scene_col.children.link(cur_frame_col)
     for slice in frames[frame_num]:
         for color in slice.keys():
+            if color not in color_list:
+                continue
             for group in slice[color]:
                 name = 'f'+str(frame_num)+'_s'+str(frames[frame_num].index(slice))+'_c'+str(color)+'_g'+str(slice[color].index(group))        #frame, slice, color, group
                 add_curve(coords=group, name=name, slice=slice, frame=frame_num, color=color)
