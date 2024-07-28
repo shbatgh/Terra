@@ -34,5 +34,7 @@ def find_reference_points(path_to_timepoints, number_of_timepoints, number_of_sl
             print("No reference point found on timepoint t" + str(tp_num+1))
             reference_point_list.append([0,0])
     print("\n")
+
+
     return(reference_point_list)
 

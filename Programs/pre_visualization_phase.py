@@ -76,6 +76,9 @@ path_end
 
 reference_point_color
     - RGB value of the reference point that was manually drawn. Input in the form: 'reference_point_color = (*R*, *G*, *B*).
+
+save_dir
+    - Outputs the reference point list into the directory 'save_dir'. Put False for no save.
 """
 
 if input('\n\nRun formatting preparation? This needs to be run to run the manual or AI segmentation formatter. (y/n)').lower() == 'y':
@@ -93,6 +96,7 @@ if input('\n\nRun formatting preparation? This needs to be run to run the manual
     number_of_slices=15
     path_end=".png"
     reference_point_color=(255,255,0)
+    save_dir = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test4-A1 ref_list.txt"
     #---------------------
 
     img_dims = formatting_preparation.find_image_dimensions(img_path=img_path)
@@ -106,7 +110,9 @@ if input('\n\nRun formatting preparation? This needs to be run to run the manual
                                                                 image_dimensions=img_dims)
 
 
-
+    if not (save_dir == 'False'):
+        with open(save_dir, 'w') as f:
+            f.write(str(ref_list))
 
 
 #-------------------------------------------------------------------------AI SEGMENTATION Formatter-------------------------------------------------------------------------
