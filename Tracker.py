@@ -83,6 +83,12 @@ def calculate_shift(centers: List[Tuple[float, float]], centers2: List[Tuple[flo
         shift_x = x2 - x1
         shift_y = y2 - y1
         shifts.append((shift_x, shift_y))
+
+
+    #Taj Edit just to output shifts in a text file
+    with open("C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test5-A1 Sam shift list.txt", 'w') as f:
+        f.write(str(shifts))
+
     return shifts
 
 def calculate_average_shift(shifts: List[Tuple[float, float]]) -> Tuple[float, float]:
