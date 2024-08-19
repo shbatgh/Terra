@@ -243,6 +243,22 @@ class MESH_OT_a_render(bpy.types.Operator):
         if not handler_activated:
             handler_activated = True
             bpy.app.handlers.frame_change_pre.append(my_handler)
+
+        #------Render first frame, Zoom out, set last frame
+        first_frame = context.scene.frame_current
+        first_frame = int(first_frame*0.1)
+        for col in tp_frames[first_frame]:
+            col.hide_viewport = False
+
+        for area in bpy.context.screen.areas:
+            if area.type == 'VIEW_3D':
+                for region in area.regions:
+                    if region.type == 'WINDOW':
+                        override = {'area': area, 'region': region, 'edit_object': bpy.context.edit_object}
+                        bpy.ops.view3d.view_all(override)
+                        
+        bpy.context.scene.frame_end = len(tp_frames.keys())*frames_per_time_point
+
         return{"FINISHED"}
 
 
@@ -289,4 +305,14 @@ def unregister():
 
 if __name__ == "__main__":
     register()
+
+#-----Shades to Material Preview
+for window in bpy.context.window_manager.windows:
+    for area in window.screen.areas: # iterate through areas in current screen
+        if area.type == 'VIEW_3D':
+            for space in area.spaces: # iterate through spaces in current VIEW_3D area
+                if space.type == 'VIEW_3D': # check if space is a 3D view
+                    space.shading.type = 'MATERIAL'
+
+
 
