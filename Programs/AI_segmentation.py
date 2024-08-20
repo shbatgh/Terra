@@ -56,6 +56,7 @@ def run_AI_segmentation_model(folders, model_path, channels, segmentation_parame
       print('\n'+str(folder_num+1), end=' ')
 
       cur_dir = folders[folder_num]
+      print("Current directory:", cur_dir)
       files = io.get_image_files(cur_dir, '_masks')        # gets image files in cur_dir (ignoring image files ending in _masks)
       images = [io.imread(f) for f in files]
       
@@ -89,8 +90,18 @@ def run_AI_segmentation_model(folders, model_path, channels, segmentation_parame
                   save_mpl=False, # make matplotlib fig to view (WARNING: SLOW W/ LARGE IMAGES)
                   in_folders=True,
                   savedir = save_dir_name)
+      
 
 
+
+      
+"""
+run_AI_segmentation_model(folders=["C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6 raw data/t"+str(i) for i in range(1, 22)],   #path to images
+                          model_path="C:/Users/areil/Desktop/Terra/human_in_the_loop/train/models/CP_tissuenet",     #path to model
+                          channels=["Green", "Red"],
+                          segmentation_parameters=[30, 0.3, 0],
+                          output_dir="C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test_Sid's Germarium AI segmentations")
+"""
 
 #model_path = "C:/Users/areil/Desktop/Terra/human_in_the_loop/train/models/CP_tissuenet"
 

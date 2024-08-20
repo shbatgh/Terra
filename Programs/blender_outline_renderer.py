@@ -83,6 +83,9 @@ for frame_num in frames.keys():
                 add_curve(coords=group, name=name, slice=slice, frame=frame_num, color=color)
 
 
+def hide_color(color):
+    pass
+
 """
 for a single frame
 

@@ -59,5 +59,26 @@ def format_stack(timepoint, reference_point):
     return(stack_list)
 
 
-n_slices = 15
+def prepare_AI_data(path_to_timepoints, number_of_timepoints, number_of_slices, reference_point_list):
+    start_AI_time = time.time()
+    print("Preparing AI Data")
+
+    global tp_path, n_slices
+    n_slices = number_of_slices
+    tp_path = path_to_timepoints
+
+    
+    frame_dict = {}
+    for tp_num in range(number_of_timepoints):
+        if reference_point_list == None:
+            cur_refp = [0,0]
+        else:
+            cur_refp=reference_point_list[tp_num]
+        cur_stack = format_stack(timepoint='t'+str(tp_num+1),              
+                                 reference_point=cur_refp)        #add to dict which houses stacks (frames)
+        
+        frame_dict[tp_num] = cur_stack
+
+    AI_time_taken = time.time()-start_AI_time
+    return(frame_dict, AI_time_taken)
 #######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
