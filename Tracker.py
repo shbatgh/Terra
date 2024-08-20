@@ -55,6 +55,21 @@ def get_centers(cells: List[np.ndarray]) -> List[Tuple[float, float]]:
 
     return centers
 
+def find_z_center(stack: List[Dict[int, Tuple[int, int]]], cell_id: int) -> Dict[int, int]:
+    first_appearance = 0
+    last_appearance = 0
+
+    for slice in stack:
+        for cell, point in slice.items():
+            if cell == cell_id:
+                if first_appearance == 0:
+                    first_appearance = cell
+                if last_appearance == 0:
+                    last_appearance == cell
+
+    z_center = (first_appearance + last_appearance) / 2
+    return z_center
+
 def centers_to_dict(centers: List[Tuple[float, float]]) -> Dict[int, Tuple[float, float]]:
     """
     Convert a list of centers to a dictionary with indices as keys.
@@ -84,8 +99,7 @@ def calculate_shift(centers: List[Tuple[float, float]], centers2: List[Tuple[flo
         shift_y = y2 - y1
         shifts.append((shift_x, shift_y))
 
-
-    #Taj Edit just to output shifts in a text file
+    # Taj Edit just to output shifts in a text file
     with open("C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test5-A1 Sam shift list.txt", 'w') as f:
         f.write(str(shifts))
 
@@ -120,8 +134,9 @@ def find_closest_centers(centers: List[Tuple[float, float]], centers2: List[Tupl
     Dict[int, int]: Dictionary mapping indices of centers2 to the closest indices of centers.
     """
     centers_dict = {i: center for i, center in enumerate(centers, start=1)}
-    closest_centers_dict = {}
+    closest_centers_dict = {i: None for i in range(1, len(centers2) + 1)}
     assigned_centers = set()
+    DISTANCE_THRESHOLD = 20  # pixels
 
     for i2, (x2, y2) in enumerate(centers2, start=1):
         x2_shifted = x2 - average_shift[0]
@@ -137,8 +152,9 @@ def find_closest_centers(centers: List[Tuple[float, float]], centers2: List[Tupl
                 closest_distance = distance
                 closest_center = i1
 
-        closest_centers_dict[i2] = closest_center
-        assigned_centers.add(closest_center)
+        if closest_distance <= DISTANCE_THRESHOLD:
+            closest_centers_dict[i2] = closest_center
+            assigned_centers.add(closest_center)
 
     return closest_centers_dict
 
