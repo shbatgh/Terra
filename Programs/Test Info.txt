@@ -8,3 +8,6 @@ Test 4: Testing ref_list output
 
 https://blender.stackexchange.com/questions/26898/how-to-create-a-folder-file-dialog/26906#26906
 
+test 5: trying manual on sid's germarium by iterating thru tps and slices.
+
+test 6: Same as test 5 but trying AI segmentation and AI segmentation formatter

@@ -9,6 +9,8 @@ Gets AI and Manually traced data and outputs in separate files. User can choose 
 NOTES
 
 Try lower flow threshold for less cells
+
+Change the input variable descriptions (some were taken out) 
 """
 
 
@@ -43,14 +45,13 @@ if input('Run AI segmentation model? (y/n)').lower() == 'y':
 
 
     #Change variables below
-    folders = ["C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6 raw data/t"+str(i) for i in range(1, 22)]
-    print(folders)
+    path_to_timepoints = "C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6 raw data"
     model_path = "C:/Users/areil/Desktop/Terra/human_in_the_loop/train/models/CP_tissuenet"
     channels = ["Green", "Red"]
     segmentation_parameters = [30, 0.3, 0]          #A1 AI Segmentation Output uses [30, 0.4, 0]
-    output_dir="C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Sid's Germarium AI segmentations"
+    output_dir="C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Test 6 Sid's Germarium AI segmentations"
     #---------------------
-    AI_segmentation.run_AI_segmentation_model(folders=folders,   #path to images
+    AI_segmentation.run_AI_segmentation_model(path_to_timepoints=path_to_timepoints,   #path to images
                                               model_path=model_path,     #path to model
                                               channels=channels,
                                               segmentation_parameters=segmentation_parameters,
@@ -88,27 +89,28 @@ if input('\n\nRun formatting preparation? This needs to be run to run the manual
 
 
     #Change variables below
-    img_path="C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6_96dpi/t1/1-01.png"#"C:/Users/areil/Desktop/Terra/Unprocessed Animations/A1 manual data/t1/1.png" Changed for Sid's
+    #img_path="C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6_96dpi/t1/1-01.png"#"C:/Users/areil/Desktop/Terra/Unprocessed Animations/A1 manual data/t1/1.png" Changed for Sid's
     #---------------------
     
     #Change variables below if reference point should be found
     path_to_timepoints="C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6_96dpi"
-    number_of_timepoints=21
-    number_of_slices=15
-    path_end="-01.png"
+    #number_of_timepoints=21
+    #number_of_slices=15
+    #path_end="-01.png"
     reference_point_color=(255,255,0)
     save_dir = False#"C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test4-A1 ref_list.txt"
     #---------------------
 
-    img_dims = formatting_preparation.find_image_dimensions(img_path=img_path)
+    img_dims = formatting_preparation.find_image_dimensions(path_to_timepoints=path_to_timepoints)
 
     if input('Find reference points? This is needed to adjust the germarium if it moves during the animation. (y/n)').lower() == 'y':
         ref_list = formatting_preparation.find_reference_points(path_to_timepoints=path_to_timepoints,
-                                                                number_of_timepoints=number_of_timepoints,
-                                                                number_of_slices=number_of_slices,
-                                                                path_end=path_end,
                                                                 reference_point_color=reference_point_color,
                                                                 image_dimensions=img_dims)
+    else:
+        import os
+        n_timepoints = len([f.path for f in os.scandir(path_to_timepoints) if f.is_dir()])
+        ref_list = [[0,0] for tp in range(n_timepoints)]
 
 
     if not (save_dir is False):
@@ -142,18 +144,13 @@ if input('\n\nRun AI segmentation formatter? (y/n)').lower() == 'y':
 
 
     #Change variables below
-    output_file = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Sid's Germarium AI formatted data.txt"
-
-    path_to_timepoints="C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Sid's Germarium AI segmentations"
-    number_of_timepoints=21
-    number_of_slices=15
+    output_file = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Test 6 Sid's Germarium AI formatted data.txt"
+    path_to_timepoints="C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Test 6 Sid's Germarium AI segmentations"
     reference_point_list=ref_list
     #---------------------
 
 
     frame_dict, AI_time_taken = AI_segmentation_formatter.prepare_AI_data(path_to_timepoints=path_to_timepoints,
-                                                                          number_of_timepoints=number_of_timepoints,
-                                                                          number_of_slices=number_of_slices,
                                                                           reference_point_list=reference_point_list)
 
     print("AI data formatting time taken: " + str(AI_time_taken))
@@ -210,15 +207,12 @@ if input('\n\nRun manual segmentation formatter? (y/n)').lower() == 'y':
 
 
     #Change variables below
-    output_file = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Sid's Germarium manual formatted data.txt"
+    output_file = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Test 5 Sid's Germarium manual formatted data.txt"
 
     path_to_timepoints="C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6_96dpi"
     recursive_colors=[(255,0,0), (0,0,255), (255,100,0), (100,100,255)]
     brute_force_colors=[(0, 255, 0), (0,255,255), (255,0,255), (255,255,0)]   #Green, cyan, purple, yellow
-    number_of_timepoints=21
-    number_of_slices=15
     reference_point_list=ref_list
-    path_end='-01.png'
     image_dimensions=img_dims
     sort_large_groups=True
     #---------------------
@@ -227,10 +221,7 @@ if input('\n\nRun manual segmentation formatter? (y/n)').lower() == 'y':
     frame_dict, manual_time_taken = manual_segmentation_formatter.prepare_manual_data(path_to_timepoints=path_to_timepoints,
                                                                                       recursive_colors=recursive_colors,
                                                                                       brute_force_colors=brute_force_colors,
-                                                                                      number_of_timepoints=number_of_timepoints,
-                                                                                      number_of_slices=number_of_slices,
                                                                                       reference_point_list=reference_point_list,
-                                                                                      path_end=path_end,
                                                                                       image_dimensions=image_dimensions,
                                                                                       sort_large_groups=sort_large_groups)
     

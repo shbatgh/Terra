@@ -10,14 +10,23 @@ Assuming:
     - Images are labeled        1,  2,  ...,    n
 
 
-Problem:
-does not order large groups yet
-    
-Code is from v30group_segmentations_adjusted.py from Terra/Visualization folder
+Notes:
+Maybe check num_slices business
+
+Have a clause that makes sure that the points checked in get_surrounding_colored_points isn't outside the boundary of the image
+
+
+Iterate through folders instead of making the names before hand
+
+[x[0] for x in os.walk('C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6_96dpi')]
+
+[ f.path for f in os.scandir('C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6_96dpi') if f.is_dir() ]
+[ f.path for f in os.scandir('C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6_96dpi/t01') if f.is_file() ]
 """
 import time
 from PIL import Image
 import sys
+import os
 
 import large_group_sorter
 
@@ -114,10 +123,15 @@ def format_slice(slice_path, reference_point):
 
 
 def format_stack(timepoint, reference_point):                #timepoint is the path to the stack
-    print("Stack " + timepoint)
+    cur_path = timepoint_folders[timepoint]
+    print("Formatting stack " + os.path.basename(os.path.normpath(cur_path)))       #takes last parts
+    slice_images = [ f.path for f in os.scandir(cur_path) if f.is_file() ]
+    
+    n_slices = len(slice_images)                                        #Might raise an error
+
     stack_list=[]
     for slice_num in range(n_slices):          #slices are numbered 1 through n
-        cur_slice = format_slice(slice_path=tp_path+'/'+timepoint+'/'+str(slice_num+1)+p_end,
+        cur_slice = format_slice(slice_path=slice_images[slice_num],
                                  reference_point=reference_point)
         stack_list.append(cur_slice)
     return(stack_list)
@@ -125,28 +139,26 @@ def format_stack(timepoint, reference_point):                #timepoint is the p
 
 
 
-def prepare_manual_data(path_to_timepoints, recursive_colors, brute_force_colors, number_of_timepoints, number_of_slices, reference_point_list, path_end, image_dimensions, sort_large_groups):
+def prepare_manual_data(path_to_timepoints, recursive_colors, brute_force_colors, reference_point_list, image_dimensions, sort_large_groups):
     start_manual_time = time.time()
     print("Preparing Manual Data")
 
-    global tp_path, p_end
-    tp_path, p_end = path_to_timepoints, path_end
     global r_colors, bf_colors, sort
     r_colors, bf_colors, sort = recursive_colors, brute_force_colors, sort_large_groups
-    global n_slices
-    n_timepoints, n_slices = number_of_timepoints, number_of_slices
     global width, height
     width, height = image_dimensions[0], image_dimensions[1]
 
 
+    global timepoint_folders
+    timepoint_folders = [f.path for f in os.scandir(path_to_timepoints) if f.is_dir()]
+    n_timepoints = len(timepoint_folders)
+    
+
     frame_dict = {}
     for tp_num in range(n_timepoints):
-        if reference_point_list == None:
-            cur_refp = [0,0]
-        else:
-            cur_refp=reference_point_list[tp_num]
+        cur_refp=reference_point_list[tp_num]       #Is [0,0] if no ref list was inputted
 
-        cur_stack = format_stack(timepoint='t'+str(tp_num+1),              
+        cur_stack = format_stack(timepoint=tp_num,              
                                  reference_point=cur_refp)        #add to dict which houses stacks (frames)
         frame_dict[tp_num] = cur_stack
 

@@ -3,6 +3,7 @@ from cellpose import core, io, models
 from cellpose.io import save_masks
 
 import os
+import lexographic_renaming   #Python file should be in the same folder
 
 #import inspect
 print("AI imports done")
@@ -12,11 +13,13 @@ def check_dir_exists(name):
    return(os.path.isdir(name))
 
 
-def run_AI_segmentation_model(folders, model_path, channels, segmentation_parameters, output_dir):    #os.getcwd() for output_dir
+def run_AI_segmentation_model(path_to_timepoints, model_path, channels, segmentation_parameters, output_dir):    #os.getcwd() for output_dir
    if check_dir_exists(output_dir):
       print("Output directory already exists and may not be empty. Delete it or change the output directory to run.")
       return None
    os.makedirs(output_dir)
+
+   folders = [f.path for f in os.scandir(path_to_timepoints) if f.is_dir()]
    
    model = models.CellposeModel(gpu=True,
                                 pretrained_model=model_path)       # declare model
@@ -91,6 +94,20 @@ def run_AI_segmentation_model(folders, model_path, channels, segmentation_parame
                   in_folders=True,
                   savedir = save_dir_name)
       
+      segmented_tps_for_renaming = [ f.path for f in os.scandir(output_dir) if f.is_dir() ]        #Lexographic renaming
+      for tp in segmented_tps_for_renaming:           #renaming the files
+         outlines_folder = os.path.normpath(tp) + '/outlines'  
+         txt_outlines_folder = os.path.normpath(tp) + '/txt_outlines'
+         lexographic_renaming.rename(path = outlines_folder,
+                                     file_or_folder = 'file',
+                                     name_length = 'auto')
+         lexographic_renaming.rename(path = txt_outlines_folder,
+                                     file_or_folder = 'file',
+                                     name_length = 'auto')
+
+      lexographic_renaming.rename(path=output_dir, #Renaming the folders
+                                  file_or_folder='folder',
+                                  name_length='auto')
 
 
 
