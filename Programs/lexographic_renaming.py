@@ -72,14 +72,14 @@ def no_leading_zeros_rename(path, file_or_folder, name_length):
        name_length=1)"""
 
 
-"""for cur_tp in [ f.path for f in os.scandir('C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6 raw data') if f.is_dir() ]:
+for cur_tp in [ f.path for f in os.scandir('C:/Users/areil/Desktop/Terra/Unprocessed Animations/A1 tp1-3 for tests') if f.is_dir() ]:
     rename(path=cur_tp,
            file_or_folder='file',
-           name_length=6)"""
-
-rename(path='C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6 raw data',
-           file_or_folder='folder',
            name_length='auto')
+
+"""rename(path='C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6 raw data',
+           file_or_folder='folder',
+           name_length='auto')"""
 """no_leading_zeros_rename(path='C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6 raw data',
        file_or_folder='folder',
        name_length=1)"""
