@@ -9,6 +9,16 @@ from typing import List, Tuple, Dict
 import math
 import os
 import re
+import os, shutil
+import numpy as np
+import matplotlib.pyplot as plt
+from cellpose import core, utils, io, models, metrics
+from glob import glob
+from Programs.AI_segmentation import *
+
+
+use_GPU = core.use_gpu()
+
 
 # Import functions from the provided code
 from Tracker import (
@@ -19,6 +29,8 @@ from Tracker import (
     calculate_average_shift,
     find_closest_centers
 )
+
+from ColorGenerator import *
 
 class CellTrackingApp(ctk.CTk):
     def __init__(self):
@@ -35,11 +47,17 @@ class CellTrackingApp(ctk.CTk):
         self.button_frame = ctk.CTkFrame(self.main_frame)
         self.button_frame.pack(pady=10)
 
+        self.load_model_button = ctk.CTkButton(self.button_frame, text="Load Model", command=self.load_model)
+        self.load_model_button.pack(side=tk.LEFT, padx=5)
+
         self.load_folder_button = ctk.CTkButton(self.button_frame, text="Load Folder", command=self.load_folder)
         self.load_folder_button.pack(side=tk.LEFT, padx=5)
 
         self.process_button = ctk.CTkButton(self.button_frame, text="Process Image", command=self.process_image)
         self.process_button.pack(side=tk.LEFT, padx=5)
+
+        self.calculate_centers_button = ctk.CTkButton(self.button_frame, text="Calculate Centers", command=self.centers_bs)
+        self.calculate_centers_button.pack(side=tk.LEFT, padx=5)
 
         self.next_image_button = ctk.CTkButton(self.button_frame, text="Next Image", command=self.next_image)
         self.next_image_button.pack(side=tk.LEFT, padx=5)
@@ -64,15 +82,24 @@ class CellTrackingApp(ctk.CTk):
         self.cells = None
         self.index = 0
         self.outlines_path = "New_Visualization_Step/AI_Segmentation_Output/seg_"
+        self.model_path = ""
+        self.model = None
+        self.folder = ""
+        self.output_dir = ""
 
     def extract_number(self, filename):
         match = re.search(r'\d+', filename)
         return int(match.group()) if match else float('inf')
 
+    def load_model(self):
+        self.model_path = filedialog.askopenfilename()
+        self.output_dir = filedialog.askdirectory()
+        
     def load_folder(self):
-        folder = filedialog.askdirectory()
-        last_folder = os.path.basename(os.path.normpath(folder))
         file_path = filedialog.askopenfilename()
+        self.folder = os.path.dirname(file_path)
+        folder = self.folder
+        last_folder = os.path.basename(os.path.normpath(folder))
         file_name = os.path.splitext(file_path)[0]
         self.outlines_path += last_folder + "/txt_outlines/"
         self.path = os.path.dirname(file_path)
@@ -83,13 +110,13 @@ class CellTrackingApp(ctk.CTk):
             self.current_image_index = -1
             self.next_image()
         
-
     def next_image(self):
         if self.image_files:
             self.current_image_index = (self.current_image_index + 1) % len(self.image_files)
             self.load_image(self.image_files[self.current_image_index])
 
         self.index += 1
+        self.index = self.index % len(self.image_files)
 
     def load_image(self, file_path):
         self.img = iio.imread(file_path)
@@ -107,6 +134,55 @@ class CellTrackingApp(ctk.CTk):
         self.canvas.draw()
 
     def process_image(self):
+        channels = ["Green", "Red"]
+        segmentation_parameters = [30, 0.3, 0]   
+        folders = [self.folder]
+        run_AI_segmentation_model(folders=folders,   #path to images
+                                              model_path=self.model_path,     #path to model
+                                              channels=channels,
+                                              segmentation_parameters=segmentation_parameters,
+                                              output_dir=self.output_dir)
+        
+    def centers_bs(self):
+        if self.img is None:
+            print("Please load an image first.")
+            return
+        cells1 = load_outlines(self.output_dir + "/seg_" + os.path.basename(self.folder) + "/txt_outlines/" + str(self.index) + "_cp_outlines.txt")
+        cells2 = None
+
+        if self.index == 1:
+            cells2 = load_outlines(self.output_dir + "/seg_" + os.path.basename(self.folder) + "/txt_outlines/" + str(self.index) + "_cp_outlines.txt")
+        else:
+            cells2 = load_outlines(self.output_dir + "/seg_" + os.path.basename(self.folder) + "/txt_outlines/" + str(self.index - 1) + "_cp_outlines.txt")
+
+        self.centers = get_centers(cells2)
+        self.centers2 = get_centers(cells1)
+
+        centers_dict = centers_to_dict(self.centers2)
+        shifts = calculate_shift(self.centers, self.centers2)
+        average_shift = calculate_average_shift(shifts)
+        closest_centers_dict = find_closest_centers(self.centers, self.centers2, average_shift)
+        centers2_dict = {i - 1: self.centers2[closest_center - 1] for i, closest_center in closest_centers_dict.items() if closest_center is not None}
+        slice = {i: center for i, center in enumerate(self.centers2)}  # Use enumerate to ensure valid indices
+         # Find the maximum index in centers2_dict
+        max_index = max(centers2_dict.keys(), default=-1) + 1
+
+        # Create a set of indices that appear as values in closest_centers_dict
+        used_indices = set(closest_center for closest_center in closest_centers_dict.values() if closest_center is not None)
+
+        # Add all centers2 values that are not included in closest_centers_dict
+        for i, center in enumerate(self.centers2):
+            if i + 1 not in used_indices:  # Adding 1 because indices in closest_centers_dict are 1-based
+                centers2_dict[max_index] = center
+                max_index += 1
+
+
+        print(f"Debug: len(self.centers) = {len(self.centers)}, len(self.centers2) = {len(self.centers2)}")
+        print(f"Debug: closest_centers_dict before display_results = {closest_centers_dict}")
+
+        self.display_results(centers2_dict, self.centers2, closest_centers_dict)
+
+    def process_image_old(self):
         if self.img is None:
             print("Please load an image first.")
             return
@@ -141,14 +217,30 @@ class CellTrackingApp(ctk.CTk):
         self.ax1.imshow(self.img, cmap='nipy_spectral')
         self.ax2.imshow(self.img, cmap='nipy_spectral')
 
-        for center in centers_dict.values():
-            self.ax1.plot(center[1], center[0], 'ro', markersize=1)
+        colors = generate_unique_colors(centers2)
+        # Normalize colors to range 0 to 1
+        normalized_colors = {(color[0] / 255, color[1] / 255, color[2] / 255): coord for color, coord in colors.items()}
 
+        # Plot points on ax1
+        for i, center in centers_dict.items():
+            color = list(normalized_colors.keys())[list(normalized_colors.values()).index(center)]
+            self.ax1.plot(center[1], center[0], 'o', color=color, markersize=5)
+
+        # Plot points on ax2
         for center in centers2:
-            self.ax2.plot(center[1], center[0], 'bo', markersize=1)
+            color = list(normalized_colors.keys())[list(normalized_colors.values()).index(center)]
+            self.ax2.plot(center[1], center[0], 'o', color=color, markersize=5)
+
+        # Draw lines between corresponding points
+        """for i, j in closest_centers_dict.items():
+            if i < len(centers_dict) and j < len(centers2):
+                center1 = centers_dict[i+1]
+                center2 = centers2[j]
+                self.ax2.plot([center1[1], center2[1]], [center1[0], center2[0]], 'r-', linewidth=0.5)"""
 
         self.ax1.set_title('Original Centers')
-        self.ax2.set_title('New Centers with Tracking')
+        self.ax2.set_title('Matched Centers')
+        
         self.canvas.draw()
 
 if __name__ == "__main__":

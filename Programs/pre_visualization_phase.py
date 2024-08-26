@@ -36,19 +36,20 @@ segmentation_parameters
         - Cellprob threshold: threshold on cellprob output to seed cell masks (set lower to include more pixels or higher to include fewer, e.g. in range from (-6, 6)).
 """
 
-
+import os 
 if input('Run AI segmentation model? (y/n)').lower() == 'y':
     import AI_segmentation
     print("Running AI Segmentation Model")
 
 
     #Change variables below
-    folders = ["C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6 raw data/t"+str(i) for i in range(1, 22)]
+    folders = ["../Raw_data_for_Segmentation/t1"]
+    print(os.listdir(folders[0]))
     print(folders)
-    model_path = "C:/Users/areil/Desktop/Terra/human_in_the_loop/train/models/CP_tissuenet"
+    model_path = "../human_in_the_loop/train/models/CP_tissuenet"
     channels = ["Green", "Red"]
     segmentation_parameters = [30, 0.3, 0]          #A1 AI Segmentation Output uses [30, 0.4, 0]
-    output_dir="C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Sid's Germarium AI segmentations"
+    output_dir="../output"
     #---------------------
     AI_segmentation.run_AI_segmentation_model(folders=folders,   #path to images
                                               model_path=model_path,     #path to model

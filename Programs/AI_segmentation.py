@@ -13,10 +13,10 @@ def check_dir_exists(name):
 
 
 def run_AI_segmentation_model(folders, model_path, channels, segmentation_parameters, output_dir):    #os.getcwd() for output_dir
-   if check_dir_exists(output_dir):
-      print("Output directory already exists and may not be empty. Delete it or change the output directory to run.")
-      return None
-   os.makedirs(output_dir)
+   #if check_dir_exists(output_dir):
+   #   print("Output directory already exists and may not be empty. Delete it or change the output directory to run.")
+   #   return None
+   #os.makedirs(output_dir)
    
    model = models.CellposeModel(gpu=True,
                                 pretrained_model=model_path)       # declare model

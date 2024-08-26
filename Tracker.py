@@ -100,8 +100,8 @@ def calculate_shift(centers: List[Tuple[float, float]], centers2: List[Tuple[flo
         shifts.append((shift_x, shift_y))
 
     # Taj Edit just to output shifts in a text file
-    with open("C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test5-A1 Sam shift list.txt", 'w') as f:
-        f.write(str(shifts))
+    #with open("C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test5-A1 Sam shift list.txt", 'w') as f:
+    #    f.write(str(shifts))
 
     return shifts
 
@@ -136,7 +136,7 @@ def find_closest_centers(centers: List[Tuple[float, float]], centers2: List[Tupl
     centers_dict = {i: center for i, center in enumerate(centers, start=1)}
     closest_centers_dict = {i: None for i in range(1, len(centers2) + 1)}
     assigned_centers = set()
-    DISTANCE_THRESHOLD = 20  # pixels
+    DISTANCE_THRESHOLD = 100  # pixels
 
     for i2, (x2, y2) in enumerate(centers2, start=1):
         x2_shifted = x2 - average_shift[0]
