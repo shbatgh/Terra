@@ -1,23 +1,37 @@
 from PIL import Image
+import os
 
-def find_image_dimensions(img_path):
-    sample_img = Image.open(img_path)            #CHANGE IF MAKING THE IMAGE NAMES CHANGEABLE
+def find_image_dimensions(path_to_timepoints):
+    timepoint_folders = [f.path for f in os.scandir(path_to_timepoints) if f.is_dir()]
+    tp1_images = [f.path for f in os.scandir(timepoint_folders[0]) if f.is_file()]
+    img1_path = tp1_images[0]
+
+    sample_img = Image.open(img1_path)            #CHANGE IF MAKING THE IMAGE NAMES CHANGEABLE
     width, height = sample_img.size
     print("Image dimensions: " + str(width) +", " + str(height))
     return([width, height])
 
-def find_reference_points(path_to_timepoints, number_of_timepoints, number_of_slices, path_end, reference_point_color, image_dimensions):
+
+
+
+def find_reference_points(path_to_timepoints, reference_point_color, image_dimensions):
+    timepoint_folders = [f.path for f in os.scandir(path_to_timepoints) if f.is_dir()]
     print("Finding reference points on timepoints: ", end='')
     width, height = image_dimensions[0], image_dimensions[1]
     reference_point_list = []
-    for tp_num in range(number_of_timepoints):
+
+    n_timepoints = len(timepoint_folders)
+
+    for tp_num in range(n_timepoints):
         print(str(tp_num+1) + ' ', end='')
         ref_point_found = False
+
+        slice_images = [f.path for f in os.scandir(timepoint_folders[tp_num]) if f.is_file()]
         
-        for slice_num in range(number_of_slices):
+        for slice_path in slice_images:
             if ref_point_found:
                 continue
-            cur_img = Image.open(path_to_timepoints+'/t'+str(tp_num+1)+'/'+str(slice_num+1)+path_end)
+            cur_img = Image.open(slice_path)
             pix = cur_img.load()
             reference_cell_x, reference_cell_y = [], []
 
