@@ -87,6 +87,7 @@ class CellTrackingApp(ctk.CTk):
         self.folder = ""
         self.output_dir = ""
         self.cell_color_mapping = []
+        self.data = None
 
     def extract_number(self, filename):
         match = re.search(r'\d+', filename)
@@ -191,6 +192,7 @@ class CellTrackingApp(ctk.CTk):
         print(f"Debug: closest_centers_dict before display_results = {closest_centers_dict}")
 
         #self.update_color_mapping(cells2_dict, closest_centers_dict)
+        self.data = cells2_dict
         self.display_results(cells2_dict, self.centers2, closest_centers_dict)
 
     def process_image_old(self):
@@ -236,6 +238,11 @@ class CellTrackingApp(ctk.CTk):
                 if old_id - 1 != new_id - 1:
                     del self.cell_color_mapping[old_id - 1]
     
+    def get_data(self):
+        data = {self.cell_color_mapping[key]: value for key, value in self.data.items()}
+        print(data)
+        return data
+
     def display_results(self, centers_dict, centers2: List[Tuple[float, float]], closest_centers_dict: Dict[int, int]):
         self.ax1.clear()
         self.ax2.clear()
@@ -278,6 +285,8 @@ class CellTrackingApp(ctk.CTk):
         self.ax1.set_title('Original Centers')
         self.ax2.set_title('Matched Centers')
         
+        self.get_data()
+
         self.canvas.draw()
 
 if __name__ == "__main__":
