@@ -14,7 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from cellpose import core, utils, io, models, metrics
 from glob import glob
-from Programs.AI_segmentation import *
+from Programs.AI_segmentation_sam import *
 
 
 use_GPU = core.use_gpu()
@@ -86,6 +86,7 @@ class CellTrackingApp(ctk.CTk):
         self.model = None
         self.folder = ""
         self.output_dir = ""
+        self.cell_color_mapping = []
 
     def extract_number(self, filename):
         match = re.search(r'\d+', filename)
@@ -166,21 +167,31 @@ class CellTrackingApp(ctk.CTk):
         slice = {i: center for i, center in enumerate(self.centers2)}  # Use enumerate to ensure valid indices
          # Find the maximum index in centers2_dict
         max_index = max(centers2_dict.keys(), default=-1) + 1
-
+        # Create a mapping from centers to cell outlines for cells1
+        centers_to_cells1 = {tuple(get_centers([cell])[0]): cell for cell in cells1}
         # Create a set of indices that appear as values in closest_centers_dict
         used_indices = set(closest_center for closest_center in closest_centers_dict.values() if closest_center is not None)
+        cells2_dict = {}
+        # For centers that were matched in closest_centers_dict
+        for i, closest_center in closest_centers_dict.items():
+            if closest_center is not None:
+                center = self.centers2[closest_center - 1]
+                cells2_dict[i - 1] = centers_to_cells1[tuple(center)]
 
-        # Add all centers2 values that are not included in closest_centers_dict
+        # For centers that were not matched and added at the end of centers2_dict
+        max_index = max(centers2_dict.keys(), default=-1) + 1
+        used_indices = set(closest_center for closest_center in closest_centers_dict.values() if closest_center is not None)
+
         for i, center in enumerate(self.centers2):
-            if i + 1 not in used_indices:  # Adding 1 because indices in closest_centers_dict are 1-based
-                centers2_dict[max_index] = center
+            if i + 1 not in used_indices:
+                cells2_dict[max_index] = centers_to_cells1[tuple(center)]
                 max_index += 1
-
 
         print(f"Debug: len(self.centers) = {len(self.centers)}, len(self.centers2) = {len(self.centers2)}")
         print(f"Debug: closest_centers_dict before display_results = {closest_centers_dict}")
 
-        self.display_results(centers2_dict, self.centers2, closest_centers_dict)
+        #self.update_color_mapping(cells2_dict, closest_centers_dict)
+        self.display_results(cells2_dict, self.centers2, closest_centers_dict)
 
     def process_image_old(self):
         if self.img is None:
@@ -210,7 +221,22 @@ class CellTrackingApp(ctk.CTk):
 
         self.display_results(slice, self.centers2, closest_centers_dict)
 
-    def display_results(self, centers_dict: Dict[int, Tuple[float, float]], centers2: List[Tuple[float, float]], closest_centers_dict: Dict[int, int]):
+    def update_color_mapping(self, cells2_dict, closest_centers_dict):
+        new_cells = set(cells2_dict.values()) - set(self.cell_color_mapping.values())
+        random_colors = generate_unique_colors(new_cells)
+        random_colors = {(color[0] / 255, color[1] / 255, color[2] / 255): coord for color, coord in random_colors.items()}
+        # Assign new colors to new cells
+        for i, cell_id in enumerate(new_cells):
+            self.cell_color_mapping[cell_id] = list(random_colors.values())[i]
+        
+        # Update mapping for cells that have moved
+        for old_id, new_id in closest_centers_dict.items():
+            if new_id is not None and old_id - 1 in self.cell_color_mapping:
+                self.cell_color_mapping[new_id - 1] = self.cell_color_mapping[old_id - 1]
+                if old_id - 1 != new_id - 1:
+                    del self.cell_color_mapping[old_id - 1]
+    
+    def display_results(self, centers_dict, centers2: List[Tuple[float, float]], closest_centers_dict: Dict[int, int]):
         self.ax1.clear()
         self.ax2.clear()
 
@@ -218,17 +244,28 @@ class CellTrackingApp(ctk.CTk):
         self.ax2.imshow(self.img, cmap='nipy_spectral')
 
         colors = generate_unique_colors(centers2)
+        diff = len(centers2) - len(self.cell_color_mapping)
+        if diff > 0:
+            self.cell_color_mapping.extend(list(colors.keys())[-diff:])
+        colors = self.cell_color_mapping
+        #colors = [(71, 46, 13), (56, 70, 83), (31, 146, 69), (131, 95, 230), (23, 218, 169), (150, 19, 187), (157, 9, 252), (8, 19, 23), (87, 39, 129), (72, 61, 208), (93, 21, 56), (50, 169, 66), (51, 195, 207), (52, 40, 143), (143, 144, 217), (14, 216, 203), (228, 199, 248), (22, 186, 174), (199, 65, 90), (24, 234, 158), (176, 127, 250), (4, 108, 99), (93, 41, 180), (110, 29, 172), (240, 10, 68), (25, 208, 2), (100, 107, 65), (67, 69, 148), (130, 98, 149), (80, 62, 78), (2, 153, 19), (185, 238, 174), (124, 158, 137), (222, 214, 159), (72, 218, 246), (55, 105, 187), (57, 7, 170), (148, 15, 15), (36, 20, 17), (81, 55, 114), (235, 72, 203), (248, 149, 183), (108, 56, 42), (167, 40, 13), (133, 243, 242), (248, 157, 135), (201, 188, 139), (124, 219, 33), (130, 100, 244), (227, 30, 218), (134, 138, 241), (222, 169, 38), (186, 240, 255), (129, 8, 140), (148, 218, 184), (105, 9, 51), (27, 187, 57), (231, 205, 103), (29, 170, 51), (41, 202, 148), (4, 125, 3), (8, 195, 119), (68, 60, 134), (202, 14, 10), (2, 12, 182), (129, 179, 227), (110, 114, 123), (16, 217, 136), (194, 30, 162), (38, 236, 94), (46, 142, 210), (76, 23, 185), (52, 197, 78), (56, 186, 108), (25, 224, 94), (161, 53, 43), (222, 126, 220), (96, 157, 176), (7, 232, 146), (60, 21, 135), (191, 180, 216), (175, 142, 60), (184, 139, 92), (0, 31, 122), (15, 43, 236), (32, 245, 18), (81, 33, 229), (245, 92, 23), (175, 145, 46), (134, 212, 241), (170, 245, 36), (138, 139, 130), (162, 125, 187), (35, 247, 18), (215, 102, 243), (20, 197, 21), (4, 90, 24), (211, 55, 95), (84, 91, 197), (204, 129, 236)]
         # Normalize colors to range 0 to 1
-        normalized_colors = {(color[0] / 255, color[1] / 255, color[2] / 255): coord for color, coord in colors.items()}
+        #normalized_colors = {(color[0] / 255, color[1] / 255, color[2] / 255): coord for color, coord in colors.items()}
+        #normalized_colors = [(r / 255, g / 255, b / 255) for r, g, b in colors]
+        if len(colors) != 0:
+            normalized_colors = [(r / 255, g / 255, b / 255) for r, g, b in colors]
 
         # Plot points on ax1
         for i, center in centers_dict.items():
-            color = list(normalized_colors.keys())[list(normalized_colors.values()).index(center)]
-            self.ax1.plot(center[1], center[0], 'o', color=color, markersize=5)
+            #color = list(normalized_colors.keys())[list(normalized_colors.values()).index(center)]
+            color = normalized_colors[i]
+            for point in center:
+                self.ax1.plot(point[0], point[1], 'o', color=color, markersize=1)
 
         # Plot points on ax2
-        for center in centers2:
-            color = list(normalized_colors.keys())[list(normalized_colors.values()).index(center)]
+        for i, center in enumerate(centers2):
+            #color = list(normalized_colors.keys())[list(normalized_colors.values()).index(center)]
+            color = normalized_colors[i]
             self.ax2.plot(center[1], center[0], 'o', color=color, markersize=5)
 
         # Draw lines between corresponding points
