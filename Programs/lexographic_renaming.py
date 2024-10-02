@@ -72,14 +72,36 @@ def no_leading_zeros_rename(path, file_or_folder, name_length):
        name_length=1)"""
 
 
-for cur_tp in [ f.path for f in os.scandir('C:/Users/areil/Desktop/Terra/Unprocessed Animations/A1 tp1-3 for tests') if f.is_dir() ]:
+"""
+rename(path='C:/Users/areil/Desktop/Terra/Unprocessed Animations/Pngs Sept 2024',
+        file_or_folder='folder',
+        name_length='auto')
+
+for cur_tp in [f.path for f in os.scandir('C:/Users/areil/Desktop/Terra/Unprocessed Animations/Pngs Sept 2024') if f.is_dir() ]:
     rename(path=cur_tp,
            file_or_folder='file',
            name_length='auto')
 
-"""rename(path='C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6 raw data',
+rename(path='C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6 raw data',
            file_or_folder='folder',
            name_length='auto')"""
+
+
 """no_leading_zeros_rename(path='C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6 raw data',
        file_or_folder='folder',
        name_length=1)"""
+
+
+rename(path='C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test2-A1 AI segmentations',
+        file_or_folder='folder',
+        name_length='auto')
+
+timepoint_folders = [f.path for f in os.scandir('C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test2-A1 AI segmentations') if f.is_dir()]
+n_timepoints = len(timepoint_folders)
+
+for cur_t in range(n_timepoints):
+    cur_path = timepoint_folders[cur_t]
+    txt_outline_path = os.path.normpath(cur_path) + "/txt_outlines"
+    rename(path=txt_outline_path,
+        file_or_folder='file',
+        name_length='auto')

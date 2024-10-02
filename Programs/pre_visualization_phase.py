@@ -93,12 +93,12 @@ if input('\n\nRun formatting preparation? This needs to be run to run the manual
     #---------------------
     
     #Change variables below if reference point should be found
-    path_to_timepoints="C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6_96dpi"
+    path_to_timepoints='C:/Users/areil/Desktop/Terra/Unprocessed Animations/Pngs Sept 2024'
     #number_of_timepoints=21
     #number_of_slices=15
     #path_end="-01.png"
     reference_point_color=(255,255,0)
-    save_dir = False#"C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test4-A1 ref_list.txt"
+    save_dir = False#"C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test10-G6 300dpi ref_list.txt"
     #---------------------
 
     img_dims = formatting_preparation.find_image_dimensions(path_to_timepoints=path_to_timepoints)
@@ -202,25 +202,21 @@ sort_large_groups
 """
 
 if input('\n\nRun manual segmentation formatter? (y/n)').lower() == 'y':
-    import manual_segmentation_formatter
+    import v10manual_segmentation_formatter
     print("Running manual segmentation formatter")
 
 
     #Change variables below
-    output_file = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Test 5 Sid's Germarium manual formatted data.txt"
+    output_file = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Test 14 G6 manual formatted data.txt"
 
-    path_to_timepoints="C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6_96dpi"
-    recursive_colors=[(255,0,0), (0,0,255), (255,100,0), (100,100,255)]
-    brute_force_colors=[(0, 255, 0), (0,255,255), (255,0,255), (255,255,0)]   #Green, cyan, purple, yellow
+    path_to_timepoints='C:/Users/areil/Desktop/Terra/Unprocessed Animations/Pngs Sept 2024'
     reference_point_list=ref_list
     image_dimensions=img_dims
     sort_large_groups=True
     #---------------------
 
 
-    frame_dict, manual_time_taken = manual_segmentation_formatter.prepare_manual_data(path_to_timepoints=path_to_timepoints,
-                                                                                      recursive_colors=recursive_colors,
-                                                                                      brute_force_colors=brute_force_colors,
+    frame_dict, manual_time_taken = v10manual_segmentation_formatter.prepare_manual_data(path_to_timepoints=path_to_timepoints,
                                                                                       reference_point_list=reference_point_list,
                                                                                       image_dimensions=image_dimensions,
                                                                                       sort_large_groups=sort_large_groups)
