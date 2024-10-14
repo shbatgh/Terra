@@ -12,6 +12,22 @@ test 5: trying manual on sid's germarium by iterating thru tps and slices.
 
 test 6: Same as test 5 but trying AI segmentation and AI segmentation formatter
 
-test 7: trying new method of manual formatting
+test 7: trying new method of manual formatting			--- Just half of germarium alone
 
 Test 8: Same as 7 but on Sid's G6 because it was messed up on A1. Figured out what it was. I switched the center x and y coordinates when calculating the arctan
+
+Test 9: Trying new method on Germarium  6, all timepoints
+
+Test 10: Same as 9 but on 300 dpi timepoints. Only 1 timepoint. Seeing if flower bug doesn't happen
+
+Idea, make bevel depth (width of wireframe) changeable by iterating thru every object
+
+Test 11: Formatting Ctracker thing. Doesnt work on slices 6 and 7 for some reason
+
+Test 12: New manual formatter on A1
+
+Test 13: Tried Ctracker thing. Failiure again.
+
+Test 14: Germarium 6 manual data, done by amy
+
+Test 15: New way to format AI data

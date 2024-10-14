@@ -63,7 +63,7 @@ def add_curve(frames_dict, color_dict, coords, name, slice, frame, color):
     curveData.dimensions = '3D'
     curveData.resolution_u = 1     # Preview U
     curveData.fill_mode = 'FULL' # Fill Mode ==> Full
-    curveData.bevel_depth      = 0.5   # Bevel Depth
+    curveData.bevel_depth      = 0.8   # Bevel Depth
     curveData.bevel_resolution = 1      # Bevel Resolution
 
     polyline = curveData.splines.new('NURBS')
@@ -186,11 +186,11 @@ tp_frames = {}          #frame: collection at timepoint
 num_frames = 0
 handler_activated = False
 
-
+#Change later to by name
 def my_handler(scene):
     new_frame = scene.frame_current
     new_frame = int(new_frame*0.1)
-    print("frame:", new_frame)
+    #print("frame:", new_frame)
     if tp_frames[new_frame][0].hide_viewport == True:
         for cur_frame in tp_frames.values():
             for col in cur_frame:
@@ -313,6 +313,7 @@ for window in bpy.context.window_manager.windows:
             for space in area.spaces: # iterate through spaces in current VIEW_3D area
                 if space.type == 'VIEW_3D': # check if space is a 3D view
                     space.shading.type = 'MATERIAL'
+                    space.clip_end = 8000
 
 
 

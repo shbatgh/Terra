@@ -37,7 +37,7 @@ def create_stack_list(stack_path):      #Takes the directory where all txt_outli
     stack_list = []
     slice_paths = [f.path for f in os.scandir(stack_path) if f.is_file()]
 
-    print("Length slice_paths,", len(slice_paths))
+    #print("Length slice_paths,", len(slice_paths))
 
     for slice_txt_path in slice_paths:
         slice_outlines = []
@@ -51,6 +51,8 @@ def create_stack_list(stack_path):      #Takes the directory where all txt_outli
     for i in range(adjustment_off_first_slice(slice_paths)):
         stack_list = [{}] + stack_list
 
+    print("Stack list length", len(stack_list))
+
     return(stack_list)
     
 
@@ -59,7 +61,10 @@ def create_stack_list(stack_path):      #Takes the directory where all txt_outli
 #C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test2-A1 AI segmentations/seg_t4/txt_outlines
 
 
-colors = [(255,0,0), (0,255,0), (0,0,255), (0,0,0), (255,255,255), (255,255,0), (255,0,255), (0,255,255), (255,128,0), (255,0,128), (128,255,0), (0,255,128), (0,128,255), (128,0,255)]
+colors = [(255,0,0), (0,255,0), (0,0,255), (0,0,0), (255,255,255), (255,255,0), (255,0,255), (0,255,255), (255,128,0), (255,0,128), (128,255,0), (0,255,128), (0,128,255), (128,0,255), (128,128,128), (64,0,0), (0,64,0), (0,0,64), (64,64,0), (64,0,64), (0,64,64)]
+
+def find_cell_perimeter(outline):       #Unused so far
+    return(len(outline))
 
 def create_center_list(stack_list):         #Creates an empty list of dictionaries. The dictionaries will be in the form 
     center_list=[]
@@ -74,6 +79,14 @@ class Cell:         #Cell class
         self.centers = [initial_center]
         self.outlines = [initial_outline]
         self.color = c_color
+    
+    def find_3D_center(self):           #Unused so far
+        x_avg = sum([coord[0] for coord in self.centers])/len(self.centers)
+        y_avg = sum([coord[1] for coord in self.centers])/len(self.centers)
+        z_avg = (3/0.198)* (self.starting_slice + (len(self.centers)/2))                                          #(3/0.198) conversion from x,y to z. Second term gets average slice
+        return([x_avg, y_avg, z_avg])
+
+
 
 
 def create_cell(starting_slice, initial_center, initial_outline):           #creates a cell
@@ -108,6 +121,7 @@ def add_to_cell(id, center, outline):           #Adds outlines and centers to ce
     
 
 def initial_cells (stack_list):     #Creates sells on the first slice
+    print(stack_list[0])
     for center,outline in stack_list[0].items():
         create_cell(starting_slice=0,
                     initial_center=center,
@@ -115,7 +129,7 @@ def initial_cells (stack_list):     #Creates sells on the first slice
 
 def group_cells(stack_list):
     add_count = 0
-    global center_list
+    global center_list, cell_count
     for cur_slice_num in range (1, len(stack_list)):
         slice_dict = stack_list[cur_slice_num]
         prev_center_dict = center_list[cur_slice_num - 1]
@@ -140,11 +154,18 @@ def group_cells(stack_list):
 
 
 
+#---------------Now I needa clean up stuff (cells that are too long are really 2 cells on top of eachother)
+
+
+
+
 
 
 #----------------------------Up to now, we have a list of cell objects, with atributes id, starting_slice, centers, outlines, and color------
 
 def identify_cell_from_center(center):
+    #print([cell.centers for cell in cells])
+    #print(center)
     for cell in cells:
         if center in cell.centers:
             return(cell)
@@ -182,26 +203,44 @@ def format_stack_list(stack_list, ref_point):
 
 
 
-cell_count = 0      #Number of cells, used for making cell_id
-cells = []          #list containing all cell objects
-radius = 10
-
-stack_list = create_stack_list(stack_path="C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test2-A1 AI segmentations/seg_t06/txt_outlines")
-
-n_slices = len(stack_list)
-
-center_list = create_center_list(stack_list)
-
-group_cells(stack_list)
 
 
-formatted_stack_list = format_stack_list(stack_list = stack_list, 
-                                         ref_point = [105, 113])
-
-temporary_changed_dict = {0:[], 1:[], 2:[], 3:[], 4:[], 5: formatted_stack_list, 6:[], 7:[], 8:[], 9:[], 10:[], 11:[], 12:[], 13:[], 14:[], 15:[], 16:[], 17:[], 18:[], 19:[]}
-
-with open("C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test15-A1 t06 AI Formatted new.txt", 'w') as f:
-    f.write(str(temporary_changed_dict))
 
 
 #--------- Up to now, we render a full stack. Combine everything to make it multiple timepoints
+
+radius = 10
+path_to_tps = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test2-A1 AI segmentations"
+ref_list = [[111, 80], [100, 121], [103, 123], [105, 118], [112, 111], [105, 113], [105, 108], [114, 99], [103, 105], [106, 104], [100, 108], [97, 102], [98, 101], [100, 101], [96, 99], [100, 95], [99, 95], [99, 95], [100, 93], [107, 83], [107, 83], [114, 75], [106, 79], [112, 76], [114, 79], [111, 81], [101, 89], [109, 86], [110, 85], [108, 87], [107, 87], [104, 87], [108, 84], [95, 96], [88, 97], [96, 92], [89, 94], [84, 101], [83, 99], [83, 101], [80, 109], [74, 109], [88, 118], [120, 122], [141, 140], [162, 161]]
+#Got from program outputs, test4 reflist A1
+
+
+stack_paths = [os.path.normpath(f.path) + '/txt_outlines' for f in os.scandir(path_to_tps) if f.is_dir()]
+all_cells = []
+frame_dict = {}
+
+tp_num = -1
+for cur_stack_path in stack_paths:
+    tp_num +=1
+    print("\n\nStack: ", tp_num)
+    cell_count = 0      #Number of cells, used for making cell_id
+    cells = []          #list containing all cell objects. Gets reset every iteration, so is added to a separate list at the end
+    stack_list = create_stack_list(stack_path=cur_stack_path)
+    center_list = create_center_list(stack_list)
+    initial_cells(stack_list)
+    group_cells(stack_list)
+
+    formatted_stack_list = format_stack_list(stack_list = stack_list, 
+                                            ref_point = ref_list[tp_num])
+
+    frame_dict[tp_num] = formatted_stack_list
+
+    all_cells.append(cells)
+
+
+#---------------------Finished with the frame dictionary, now output it in a txt_file
+
+with open("C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test17-A1 entire AI Formatted new.txt", 'w') as f:
+    f.write(str(frame_dict))
+
+#round centers to 3rd decimal point
