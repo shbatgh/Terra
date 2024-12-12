@@ -92,16 +92,14 @@ rename(path='C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6 raw 
        name_length=1)"""
 
 
-rename(path='C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test2-A1 AI segmentations',
+rename(path="C:/Users/areil/Desktop/Terra/Unprocessed Animations/Position10August2024",
         file_or_folder='folder',
         name_length='auto')
 
-timepoint_folders = [f.path for f in os.scandir('C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test2-A1 AI segmentations') if f.is_dir()]
-n_timepoints = len(timepoint_folders)
+timepoint_folders = [f.path for f in os.scandir('C:/Users/areil/Desktop/Terra/Unprocessed Animations/August 1 PNG') if f.is_dir()]
+print(len(timepoint_folders))
 
-for cur_t in range(n_timepoints):
-    cur_path = timepoint_folders[cur_t]
-    txt_outline_path = os.path.normpath(cur_path) + "/txt_outlines"
-    rename(path=txt_outline_path,
-        file_or_folder='file',
-        name_length='auto')
+for cur_tp in [f.path for f in os.scandir("C:/Users/areil/Desktop/Terra/Unprocessed Animations/Position10August2024") if f.is_dir() ]:
+    rename(path=cur_tp,
+           file_or_folder='file',
+           name_length='auto')

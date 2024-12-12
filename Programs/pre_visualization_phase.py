@@ -47,9 +47,9 @@ if input('Run AI segmentation model? (y/n)').lower() == 'y':
     #Change variables below
     path_to_timepoints = "C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6 raw data"
     model_path = "C:/Users/areil/Desktop/Terra/human_in_the_loop/train/models/CP_tissuenet"
-    channels = ["Green", "Red"]
+    channels = ["Green", "None"]
     segmentation_parameters = [30, 0.3, 0]          #A1 AI Segmentation Output uses [30, 0.4, 0]
-    output_dir="C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Test 6 Sid's Germarium AI segmentations"
+    output_dir="C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Just Green Germarium6 AI segmentations"
     #---------------------
     AI_segmentation.run_AI_segmentation_model(path_to_timepoints=path_to_timepoints,   #path to images
                                               model_path=model_path,     #path to model
@@ -93,7 +93,7 @@ if input('\n\nRun formatting preparation? This needs to be run to run the manual
     #---------------------
     
     #Change variables below if reference point should be found
-    path_to_timepoints='C:/Users/areil/Desktop/Terra/Unprocessed Animations/Pngs Sept 2024'
+    path_to_timepoints="C:/Users/areil/Desktop/Terra/Unprocessed Animations/Position10August2024"
     #number_of_timepoints=21
     #number_of_slices=15
     #path_end="-01.png"
@@ -207,9 +207,9 @@ if input('\n\nRun manual segmentation formatter? (y/n)').lower() == 'y':
 
 
     #Change variables below
-    output_file = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Test 14 G6 manual formatted data.txt"
+    output_file = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Position10August2024 data.txt"
 
-    path_to_timepoints='C:/Users/areil/Desktop/Terra/Unprocessed Animations/Pngs Sept 2024'
+    path_to_timepoints="C:/Users/areil/Desktop/Terra/Unprocessed Animations/Position10August2024"
     reference_point_list=ref_list
     image_dimensions=img_dims
     sort_large_groups=True
