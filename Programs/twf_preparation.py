@@ -1,3 +1,24 @@
+"""
+This formats the data for the triple_wireframe program.
+The triple_wireframe program takes data for a single cell/cyst object in the following format:
+[
+[[x, y], [x, y], [x, y], ...],      <--this is a slice
+[[x, y], [x, y], [x, y], ...],
+[[x, y], [x, y], [x, y], ...],
+...
+]
+
+
+Each timepoint currently has the following format:
+[
+{(R,G,B): [group1, group2, ....]}       --> {(R,G,B): [[[x,y],[x,y],[x,y],..], [[x,y],[x,y],[x,y],..], ... ]},           <--- slice
+{(R,G,B): [group1, group2, ....]}       --> {(R,G,B): [[[x,y],[x,y],[x,y],..], [[x,y],[x,y],[x,y],..], ... ]},
+....
+]
+"""
+
+
+
 import os
 import math
 import random
@@ -6,6 +27,7 @@ def create_center_dict(slice_outlines):     #takes txt_outlines for a single sli
     center_dict = {}
     for outline in slice_outlines:
         center = (sum([coord[0] for coord in outline])/len(outline), sum([coord[1] for coord in outline])/len(outline))
+        
         center_dict[center] = outline
     return(center_dict)
 

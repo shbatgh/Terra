@@ -58,23 +58,45 @@ def add_to_color_dict(color):
     return(color_dict)
 
 def add_curve(frames_dict, color_dict, coords, name, slice, frame, color):
+    mesh_marker = False
+    
     global cur_frame_col
     curveData = bpy.data.curves.new('my_curve', type='CURVE')
     curveData.dimensions = '3D'
-    curveData.resolution_u = 1     # Preview U
+    curveData.resolution_u = 15     # Preview U
     curveData.fill_mode = 'FULL' # Fill Mode ==> Full
-    curveData.bevel_depth      = 0.8   # Bevel Depth
+    curveData.bevel_depth      = .8   # Bevel Depth
     curveData.bevel_resolution = 1      # Bevel Resolution
 
     polyline = curveData.splines.new('NURBS')
-    polyline.points.add(len(coords))
+    polyline.points.add(len(coords)-1)
     for i, coord in enumerate(coords):
-        x,y = coord
-        z = frames_dict[frame].index(slice)*(3/0.198)/2    #Multiply by 3/0.198????
+        x,y = coord[0], coord[1]
+        ##--Adding this
+        if len(coord) == 3:
+            z = coord[2]
+            mesh_marker = True
+            
+            verticies=[(x-0.3,y-0.3,z-0.3), (x-0.3,y+0.3,z-0.3), (x+0.3,y+0.3,z-0.3), (x+0.3,y-0.3,z-0.3), (x-0.3,y-0.3,z+0.3), (x-0.3,y+0.3,z+0.3), (x+0.3,y+0.3,z+0.3), (x+0.3,y-0.3,z+0.3)]
+            edges =[]
+            faces = [(0,1,2,3), (4,5,6,7), (0,4,7,3), (0,1,5,4), (1,2,6,5), (7,6,2,3)]
+            new_mesh = bpy.data.meshes.new("new_mesh")
+            new_mesh.from_pydata(verticies, edges, faces)
+            new_mesh.update()
+            new_object = bpy.data.objects.new("new_object", new_mesh)
+            cur_frame_col.objects.link(new_object)
+        else:
+            z = frames_dict[frame].index(slice)*(3/0.198)/2    #Multiply by 3/0.198????
+            
+
         polyline.points[i].co = (x, y, z, 1)
     
+    if mesh_marker:
+        curveData.bevel_depth = 0.3
     curveOB = bpy.data.objects.new(name, curveData)         # create Object
     curveOB.data.materials.append(color_dict[color])        #add texture (color)
+    if mesh_marker:
+        curveOB.data.splines[0].order_u=3
     cur_frame_col.objects.link(curveOB)                     #add to collection
     
     #Animation keyframes

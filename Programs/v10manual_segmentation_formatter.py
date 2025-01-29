@@ -29,8 +29,6 @@ import sys
 import os
 import math
 
-import large_group_sorter
-
 sys.setrecursionlimit(1500)
 
 
@@ -99,11 +97,28 @@ def split_group(group_lst, C_x):
     return(right_group, left_group)
 
 
-def adjusted_group(group, reference_point):
-    return([[coord[0]-reference_point[0], coord[1]-reference_point[1]] for coord in group])
+def adjusted_group(group, reference_point, rotation_point):
+    ox, oy = reference_point[0], reference_point[1]
+
+    if not should_rotate:
+        return([[coord[0]-ox, coord[1]-oy] for coord in group])
+    
+    result = []
+    angle = -math.atan((rotation_point[1]-oy)/(rotation_point[0]-ox))
+
+    for coord in group:
+        px, py = coord[0], coord[1]
+        qx = math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
+        qy = math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
+        result.append([qx,qy])
+
+    result.append(result[0])        #To complete the loop
+    result.append(result[1])
+    #result.append(result[1])
+    return(result)
 
 #Remember to adjust to reference point
-def sorted_group(group, reference_point):         #Puts all pixels of a single color in a group, regards all pixels of that color as the same structure/cell
+def sorted_group(group, reference_point, rotation_point):         #Puts all pixels of a single color in a group, regards all pixels of that color as the same structure/cell
     if sort and len(group) > 1:
         #group = large_group_sorter.sort_group(group)
         global center
@@ -119,11 +134,12 @@ def sorted_group(group, reference_point):         #Puts all pixels of a single c
         group = right_group + left_group
 
     return(adjusted_group(group =group,
-                          reference_point = reference_point))
+                          reference_point = reference_point,
+                          rotation_point = rotation_point))
 
 
 
-def format_slice(slice_path, reference_point):
+def format_slice(slice_path, reference_point, rotation_point):
     print("\n\n New Slice")
     slice_dict = {}
 
@@ -143,14 +159,14 @@ def format_slice(slice_path, reference_point):
                 
                 add_to_dict(dict=slice_dict,
                             color=color,
-                            group=sorted_group(cur_group, reference_point))
+                            group=sorted_group(cur_group, reference_point, rotation_point))
         
     return(slice_dict)
 
 #Sample imgs: 'C:/Users/areil/Desktop/Germarium_Visualization/Images/Sample_Stacks/3-01.png'
 
 
-def format_stack(timepoint, reference_point):                #timepoint is the path to the stack
+def format_stack(timepoint, reference_point, rotation_point):                #timepoint is the path to the stack
     cur_path = timepoint_folders[timepoint]
     print("Formatting stack " + os.path.basename(os.path.normpath(cur_path)))       #takes last parts
     slice_images = [ f.path for f in os.scandir(cur_path) if f.is_file() ]
@@ -160,14 +176,18 @@ def format_stack(timepoint, reference_point):                #timepoint is the p
     stack_list=[]
     for slice_num in range(n_slices):          #slices are numbered 1 through n
         cur_slice = format_slice(slice_path=slice_images[slice_num],
-                                 reference_point=reference_point)
+                                 reference_point=reference_point,
+                                 rotation_point = rotation_point)
         stack_list.append(cur_slice)
     return(stack_list)
         
 
 
 
-def prepare_manual_data(path_to_timepoints, reference_point_list, image_dimensions, sort_large_groups):
+def prepare_manual_data(path_to_timepoints, reference_point_list, rotation_point_list, image_dimensions, sort_large_groups, rotate):
+    global should_rotate
+    should_rotate = rotate
+
     start_manual_time = time.time()
     print("Preparing Manual Data")
 
@@ -185,9 +205,11 @@ def prepare_manual_data(path_to_timepoints, reference_point_list, image_dimensio
     frame_dict = {}
     for tp_num in range(n_timepoints):
         cur_refp=reference_point_list[tp_num]       #Is [0,0] if no ref list was inputted
+        cur_rotp=rotation_point_list[tp_num]
 
         cur_stack = format_stack(timepoint=tp_num,              
-                                 reference_point=cur_refp)        #add to dict which houses stacks (frames)
+                                 reference_point=cur_refp,
+                                 rotation_point=cur_rotp)        #add to dict which houses stacks (frames)
         frame_dict[tp_num] = cur_stack
 
     manual_time_taken = time.time()-start_manual_time

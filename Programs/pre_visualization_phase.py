@@ -45,11 +45,11 @@ if input('Run AI segmentation model? (y/n)').lower() == 'y':
 
 
     #Change variables below
-    path_to_timepoints = "C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6 raw data"
+    path_to_timepoints = "C:/Users/areil/Desktop/Terra/Unprocessed Animations/August 1 PNG"
     model_path = "C:/Users/areil/Desktop/Terra/human_in_the_loop/train/models/CP_tissuenet"
-    channels = ["Green", "None"]
-    segmentation_parameters = [30, 0.3, 0]          #A1 AI Segmentation Output uses [30, 0.4, 0]
-    output_dir="C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Just Green Germarium6 AI segmentations"
+    channels = ["Grayscale", "None"]        #before was ["Green", "None"]
+    segmentation_parameters = [30, 3, 0]          #A1 AI Segmentation Output uses [30, 0.4, 0]
+    output_dir="C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Testing AI on manual tracings 1"
     #---------------------
     AI_segmentation.run_AI_segmentation_model(path_to_timepoints=path_to_timepoints,   #path to images
                                               model_path=model_path,     #path to model
@@ -91,13 +91,14 @@ if input('\n\nRun formatting preparation? This needs to be run to run the manual
     #Change variables below
     #img_path="C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6_96dpi/t1/1-01.png"#"C:/Users/areil/Desktop/Terra/Unprocessed Animations/A1 manual data/t1/1.png" Changed for Sid's
     #---------------------
-    
+
     #Change variables below if reference point should be found
-    path_to_timepoints="C:/Users/areil/Desktop/Terra/Unprocessed Animations/Position10August2024"
+    path_to_timepoints="C:/Users/areil/Desktop/Terra/Unprocessed Animations/Pngs Sept 2024"
     #number_of_timepoints=21
     #number_of_slices=15
     #path_end="-01.png"
     reference_point_color=(255,255,0)
+    rotation_point_color=(255,0,255)
     save_dir = False#"C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test10-G6 300dpi ref_list.txt"
     #---------------------
 
@@ -111,6 +112,15 @@ if input('\n\nRun formatting preparation? This needs to be run to run the manual
         import os
         n_timepoints = len([f.path for f in os.scandir(path_to_timepoints) if f.is_dir()])
         ref_list = [[0,0] for tp in range(n_timepoints)]
+
+    #-----------------------------------------------------------Rotation point list
+
+    if input('Find rotation points? This is needed to account for germarium rotation. (y/n)').lower() == 'y':
+        rot_list = formatting_preparation.find_reference_points(path_to_timepoints=path_to_timepoints,
+                                                                reference_point_color=rotation_point_color,
+                                                                image_dimensions=img_dims)
+    else:
+        rot_list = None
 
 
     if not (save_dir is False):
@@ -203,24 +213,35 @@ sort_large_groups
 
 if input('\n\nRun manual segmentation formatter? (y/n)').lower() == 'y':
     import v10manual_segmentation_formatter
+    #import manual_segmentation_formatter
     print("Running manual segmentation formatter")
 
 
     #Change variables below
-    output_file = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Position10August2024 data.txt"
-
-    path_to_timepoints="C:/Users/areil/Desktop/Terra/Unprocessed Animations/Position10August2024"
+    output_file = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/For Sid part2 (rotated) Pngs Sept 2024.txt"
+    path_to_timepoints="C:/Users/areil/Desktop/Terra/Unprocessed Animations/Pngs Sept 2024"
     reference_point_list=ref_list
+    rotation_point_list=rot_list
     image_dimensions=img_dims
     sort_large_groups=True
+    rotate = True
     #---------------------
 
-
+    
     frame_dict, manual_time_taken = v10manual_segmentation_formatter.prepare_manual_data(path_to_timepoints=path_to_timepoints,
+                                                                                      reference_point_list=reference_point_list,
+                                                                                      rotation_point_list=rot_list,
+                                                                                      image_dimensions=image_dimensions,
+                                                                                      sort_large_groups=sort_large_groups,
+                                                                                      rotate=rotate)
+    """ 
+    frame_dict, manual_time_taken = manual_segmentation_formatter.prepare_manual_data(path_to_timepoints=path_to_timepoints,
+                                                                                      recursive_colors = [(255,0,0), (0,0,255), (255, 0, 255), (0, 255, 255), (100, 100, 255), (255, 255, 0)],
+                                                                                      brute_force_colors = [(0, 255, 0)],
                                                                                       reference_point_list=reference_point_list,
                                                                                       image_dimensions=image_dimensions,
                                                                                       sort_large_groups=sort_large_groups)
-    
+    """
     print("Manual data formatting time taken: " + str(manual_time_taken))
     with open(output_file, 'w') as f:
         f.write(str(frame_dict))
