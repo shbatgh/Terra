@@ -2,6 +2,8 @@ import os
 import math
 import random
 
+import adjust_algorithm
+
 def create_center_dict(slice_outlines):     #takes txt_outlines for a single slice and converts it into a dictionary in the form {center: outlines, ...}
     center_dict = {}
     for outline in slice_outlines:
@@ -10,7 +12,7 @@ def create_center_dict(slice_outlines):     #takes txt_outlines for a single sli
     return(center_dict)
 
 def line_to_group(line):
-    group = [[int(line[i]), int(line[i+1])] for i in range(0, len(line), 2)]       #Adjusted to reference
+    group = [[int(line[i]), int(line[i+1])] for i in range(0, len(line), 2)]       #NOT Adjusted to reference
     group+= [group[0], group[1], group[2]]                                              #Loops around so wireframes are complete
     return(group)
 
@@ -61,7 +63,7 @@ def create_stack_list(stack_path):      #Takes the directory where all txt_outli
 #C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test2-A1 AI segmentations/seg_t4/txt_outlines
 
 
-colors = [(255,0,0), (0,255,0), (0,0,255), (0,0,0), (255,255,255), (255,255,0), (255,0,255), (0,255,255), (255,128,0), (255,0,128), (128,255,0), (0,255,128), (0,128,255), (128,0,255), (128,128,128), (64,0,0), (0,64,0), (0,0,64), (64,64,0), (64,0,64), (0,64,64)]
+colors = [(253,0,0), (0,253,0), (0,0,253), (253,253,253), (253,253,0), (253,0,253), (0,253,253), (253,128,0), (253,0,128), (128,253,0), (0,253,128), (0,128,253), (128,0,253), (128,128,128)]        #, (64,0,0), (0,64,0), (0,0,64), (64,64,0), (64,0,64), (0,64,64)
 
 def find_cell_perimeter(outline):       #Unused so far
     return(len(outline))
@@ -170,13 +172,12 @@ def identify_cell_from_center(center):
         if center in cell.centers:
             return(cell)
 
-def adjust_outline(outline, ref_point):
-    ref_x, ref_y = ref_point[0], ref_point[1]
-    adjusted_outline = []
-    for coord in outline:
-        cur_x, cur_y = coord[0], coord[1]
-        adjusted_outline.append([cur_x-ref_x, cur_y-ref_y])
-    return(adjusted_outline)
+def adjust_outline(outline, ref_point, rot_point):
+    adjusted_group = adjust_algorithm.adjust_group(group =outline,
+                                                   reference_point = ref_point,
+                                                   rotation_point = rot_point,
+                                                   should_rotate = True)
+    return(adjusted_group)
 
 
 def add_outline_to_dict(color, dict, outline):
@@ -187,14 +188,15 @@ def add_outline_to_dict(color, dict, outline):
 
 
 
-def format_stack_list(stack_list, ref_point):
+def format_stack_list(stack_list, ref_point, rot_point):
     formatted_stack_list = []
     for cur_slice_dict in stack_list:
         formatted_slice_dict = {}
         for cur_center, cur_outline in cur_slice_dict.items():
             cur_cell = identify_cell_from_center(cur_center)
             adjusted_outline = adjust_outline(outline=cur_outline,
-                                              ref_point=ref_point)
+                                              ref_point=ref_point,
+                                              rot_point=rot_point)
             add_outline_to_dict(color=cur_cell.color,
                                 dict=formatted_slice_dict,
                                 outline=adjusted_outline)
@@ -209,13 +211,14 @@ def format_stack_list(stack_list, ref_point):
 
 #--------- Up to now, we render a full stack. Combine everything to make it multiple timepoints
 
-radius = 10
-path_to_tps = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test2-A1 AI segmentations"
+radius = 30
+path_to_tps = "C:/Users/areil/Desktop/Terra/Unprocessed Animations/greengo3tps"
 ref_list = [[111, 80], [100, 121], [103, 123], [105, 118], [112, 111], [105, 113], [105, 108], [114, 99], [103, 105], [106, 104], [100, 108], [97, 102], [98, 101], [100, 101], [96, 99], [100, 95], [99, 95], [99, 95], [100, 93], [107, 83], [107, 83], [114, 75], [106, 79], [112, 76], [114, 79], [111, 81], [101, 89], [109, 86], [110, 85], [108, 87], [107, 87], [104, 87], [108, 84], [95, 96], [88, 97], [96, 92], [89, 94], [84, 101], [83, 99], [83, 101], [80, 109], [74, 109], [88, 118], [120, 122], [141, 140], [162, 161]]
+rot_list = [[270, 277], [266, 307], [273, 305], [275, 295], [275, 303], [269, 304], [278, 295], [263, 304], [263, 307], [278, 292], [274, 299], [271, 303], [269, 288], [272, 284], [265, 285], [271, 289], [276, 280], [279, 271], [281, 274], [278, 269], [284, 264], [287, 263], [286, 254], [289, 265], [295, 266], [291, 282], [290, 288], [296, 285], [300, 289], [299, 299], [306, 307], [318, 286], [320, 297], [323, 293], [310, 305], [307, 301], [324, 299], [323, 293], [327, 291], [313, 293], [320, 287], [315, 291], [331, 309], [355, 338], [363, 370], [378, 403]]
 #Got from program outputs, test4 reflist A1
 
 
-stack_paths = [os.path.normpath(f.path) + '/txt_outlines' for f in os.scandir(path_to_tps) if f.is_dir()]
+stack_paths = [os.path.normpath(f.path) for f in os.scandir(path_to_tps) if f.is_dir()]
 all_cells = []
 frame_dict = {}
 
@@ -231,7 +234,8 @@ for cur_stack_path in stack_paths:
     group_cells(stack_list)
 
     formatted_stack_list = format_stack_list(stack_list = stack_list, 
-                                            ref_point = ref_list[tp_num])
+                                            ref_point = ref_list[tp_num],
+                                            rot_point = rot_list[tp_num])
 
     frame_dict[tp_num] = formatted_stack_list
 
@@ -240,7 +244,7 @@ for cur_stack_path in stack_paths:
 
 #---------------------Finished with the frame dictionary, now output it in a txt_file
 
-with open("C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test17-A1 entire AI Formatted new.txt", 'w') as f:
+with open("C:/Users/areil/Desktop/Terra/Programs/Program Outputs/greengo3tps test.txt", 'w') as f:
     f.write(str(frame_dict))
 
 #round centers to 3rd decimal point

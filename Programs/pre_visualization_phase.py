@@ -45,12 +45,13 @@ if input('Run AI segmentation model? (y/n)').lower() == 'y':
 
 
     #Change variables below
-    path_to_timepoints = "C:/Users/areil/Desktop/Terra/Unprocessed Animations/August 1 PNG"
+    path_to_timepoints = "C:/Users/areil/Desktop/Terra/Unprocessed Animations/Test_Green_Isolation_oneTP"
     model_path = "C:/Users/areil/Desktop/Terra/human_in_the_loop/train/models/CP_tissuenet"
     channels = ["Grayscale", "None"]        #before was ["Green", "None"]
-    segmentation_parameters = [30, 3, 0]          #A1 AI Segmentation Output uses [30, 0.4, 0]
-    output_dir="C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Testing AI on manual tracings 1"
+    segmentation_parameters = [30, 3.0, 0]          #A1 AI Segmentation Output uses [30, 0.4, 0]
+    output_dir="C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Testing Green Isolation"
     #---------------------
+
     AI_segmentation.run_AI_segmentation_model(path_to_timepoints=path_to_timepoints,   #path to images
                                               model_path=model_path,     #path to model
                                               channels=channels,
@@ -93,13 +94,13 @@ if input('\n\nRun formatting preparation? This needs to be run to run the manual
     #---------------------
 
     #Change variables below if reference point should be found
-    path_to_timepoints="C:/Users/areil/Desktop/Terra/Unprocessed Animations/Pngs Sept 2024"
+    path_to_timepoints="C:/Users/areil/Desktop/Terra/Unprocessed Animations/A1 manual data"
     #number_of_timepoints=21
     #number_of_slices=15
     #path_end="-01.png"
     reference_point_color=(255,255,0)
-    rotation_point_color=(255,0,255)
-    save_dir = False#"C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test10-G6 300dpi ref_list.txt"
+    rotation_point_color=(0,255,0)
+    save_dir = False #"C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Animation1 ref_list and rot_list.txt"
     #---------------------
 
     img_dims = formatting_preparation.find_image_dimensions(path_to_timepoints=path_to_timepoints)
@@ -125,7 +126,7 @@ if input('\n\nRun formatting preparation? This needs to be run to run the manual
 
     if not (save_dir is False):
         with open(save_dir, 'w') as f:
-            f.write(str(ref_list))
+            f.write(str(ref_list) + "\n\n\n\n" + str(rot_list))
 
 
 #-------------------------------------------------------------------------AI SEGMENTATION Formatter-------------------------------------------------------------------------
@@ -218,14 +219,17 @@ if input('\n\nRun manual segmentation formatter? (y/n)').lower() == 'y':
 
 
     #Change variables below
-    output_file = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/For Sid part2 (rotated) Pngs Sept 2024.txt"
-    path_to_timepoints="C:/Users/areil/Desktop/Terra/Unprocessed Animations/Pngs Sept 2024"
+    output_file = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/PRES First Animation Rotated.txt"
+    path_to_timepoints="C:/Users/areil/Desktop/Terra/Unprocessed Animations/A1 manual data"
     reference_point_list=ref_list
     rotation_point_list=rot_list
     image_dimensions=img_dims
     sort_large_groups=True
     rotate = True
-    #---------------------
+    #---------------------to skip rotation phase:
+    reference_point_list = [[111, 80], [100, 121], [103, 123], [105, 118], [112, 111], [105, 113], [105, 108], [114, 99], [103, 105], [106, 104], [100, 108], [97, 102], [98, 101], [100, 101], [96, 99], [100, 95], [99, 95], [99, 95], [100, 93], [107, 83], [107, 83], [114, 75], [106, 79], [112, 76], [114, 79], [111, 81], [101, 89], [109, 86], [110, 85], [108, 87], [107, 87], [104, 87], [108, 84], [95, 96], [88, 97], [96, 92], [89, 94], [84, 101], [83, 99], [83, 101], [80, 109], [74, 109], [88, 118], [120, 122], [141, 140], [162, 161]]
+    rot_list = [[236, 212], [244, 261], [249, 263], [231, 253], [254, 260], [248, 257], [248, 261], [253, 256], [249, 276], [255, 270], [243, 252], [236, 261], [237, 256], [243, 259], [248, 259], [249, 259], [258, 251], [252, 253], [250, 254], [250, 241], [258, 256], [262, 255], [254, 249], [242, 225], [274, 259], [267, 258], [272, 273], [276, 273], [283, 268], [274, 261], [305, 288], [316, 280], [316, 281], [317, 290], [309, 300], [305, 291], [309, 283], [310, 290], [319, 290], [307, 304], [332, 303], [319, 294], [332, 307], [351, 332], [354, 353], [367, 387]]
+    #-----
 
     
     frame_dict, manual_time_taken = v10manual_segmentation_formatter.prepare_manual_data(path_to_timepoints=path_to_timepoints,

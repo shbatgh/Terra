@@ -63,9 +63,9 @@ def add_curve(frames_dict, color_dict, coords, name, slice, frame, color):
     global cur_frame_col
     curveData = bpy.data.curves.new('my_curve', type='CURVE')
     curveData.dimensions = '3D'
-    curveData.resolution_u = 15     # Preview U
+    curveData.resolution_u = 8     # Preview U
     curveData.fill_mode = 'FULL' # Fill Mode ==> Full
-    curveData.bevel_depth      = .8   # Bevel Depth
+    curveData.bevel_depth      = .3   # Bevel Depth
     curveData.bevel_resolution = 1      # Bevel Resolution
 
     polyline = curveData.splines.new('NURBS')
@@ -73,10 +73,10 @@ def add_curve(frames_dict, color_dict, coords, name, slice, frame, color):
     for i, coord in enumerate(coords):
         x,y = coord[0], coord[1]
         ##--Adding this
-        if len(coord) == 3:
+        if len(coord) >2:
             z = coord[2]
             mesh_marker = True
-            
+            """
             verticies=[(x-0.3,y-0.3,z-0.3), (x-0.3,y+0.3,z-0.3), (x+0.3,y+0.3,z-0.3), (x+0.3,y-0.3,z-0.3), (x-0.3,y-0.3,z+0.3), (x-0.3,y+0.3,z+0.3), (x+0.3,y+0.3,z+0.3), (x+0.3,y-0.3,z+0.3)]
             edges =[]
             faces = [(0,1,2,3), (4,5,6,7), (0,4,7,3), (0,1,5,4), (1,2,6,5), (7,6,2,3)]
@@ -85,6 +85,7 @@ def add_curve(frames_dict, color_dict, coords, name, slice, frame, color):
             new_mesh.update()
             new_object = bpy.data.objects.new("new_object", new_mesh)
             cur_frame_col.objects.link(new_object)
+            """
         else:
             z = frames_dict[frame].index(slice)*(3/0.198)/2    #Multiply by 3/0.198????
             

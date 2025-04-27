@@ -1,21 +1,15 @@
-import ast
+#import ast
 
 wf_height = 3/0.198
-wf_dist = 3/0.198 /5
-wf_offset = 1.25
 
-path = "C:/Users/areil/Desktop/Terra/Unprocessed Animations/Just Purple Cyst for trip wireframe.txt"
-
-comp = 0
-
-
+"""
 def get_data(path):
     with open(path, 'r') as f:   #blender_format_adjusted or blender_format
         data = f.read()
 
     outline_list = ast.literal_eval(data)
     return(outline_list)
-
+"""
 
 def find_min_and_width(outline_list):
     min_val = outline_list[0][0][comp]
@@ -99,7 +93,6 @@ def find_point(p_list, plane_val, min_or_max):
 def create_wf_list(sorted_outlines, plane_val, z_start):        #Going up then down
     wf_list = []
     num_slices = int(len(sorted_outlines)/2)
-    print("Number of  slices: ", num_slices)
     #---Going up
     for idx in range(0, num_slices):
         cur_z = (z_start + idx*wf_height)/2
@@ -125,25 +118,29 @@ def create_wf_list(sorted_outlines, plane_val, z_start):        #Going up then d
     return(wf_list)
 
 
-def triple_wireframe_creation(x_or_y):
+def triple_wireframe_creation(outline_list, x_or_y, starting_slice, wf_dist_arg, wf_offset_arg):
+    global wf_dist, wf_offset
+    wf_dist = wf_dist_arg
+    wf_offset = wf_offset_arg
     global comp
     comp = 0
     if x_or_y == "y":
         comp = 1
-    outline_list = get_data(path)
+    
     min_val, width = find_min_and_width(outline_list)
     num_wfs = find_num_wfs(width)
     print(min_val, width, num_wfs, "\n")
     plane_vals = find_planes(min_val, width, num_wfs)
-    print(plane_vals, "\n")
+    #print(plane_vals, "\n")
     sorted_outlines = create_sorted_outlines(outline_list)
     #print(sorted_outlines, "\n")
 
     wfs = []
+    #print(plane_vals)
     for val in plane_vals:
         wf_list = create_wf_list(sorted_outlines=sorted_outlines,
                                  plane_val=val,
-                                 z_start=4*wf_height)
+                                 z_start=starting_slice*wf_height)
         if len(wf_list)>2:
             wf_list.append(wf_list[0])
             wf_list.append(wf_list[1])
@@ -154,12 +151,6 @@ def triple_wireframe_creation(x_or_y):
     #for i in range(len(plane_vals)):
         #test_pv.append([wfs[1][1][0], plane_vals[i], wfs[1][1][2]])
     return(wfs)
-
-wfsx = triple_wireframe_creation("x")
-wfsy = triple_wireframe_creation("y")
-
-with open("C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Testing tripe wireframe creation.txt", 'w') as f:
-    f.write(str({0: [{(255, 0, 255) : wfsx + wfsy}]}))
 
 
 

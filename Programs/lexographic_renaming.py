@@ -67,41 +67,17 @@ def no_leading_zeros_rename(path, file_or_folder, name_length):
 
 
 
-"""no_leading_zeros_rename(path='C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6_96dpi',
-       file_or_folder='folder',
-       name_length=1)"""
 
 
-"""
-rename(path='C:/Users/areil/Desktop/Terra/Unprocessed Animations/Pngs Sept 2024',
+
+
+rename(path="C:/Users/areil/Desktop/Terra/Unprocessed Animations/A1 manual data",
         file_or_folder='folder',
         name_length='auto')
 
-for cur_tp in [f.path for f in os.scandir('C:/Users/areil/Desktop/Terra/Unprocessed Animations/Pngs Sept 2024') if f.is_dir() ]:
-    rename(path=cur_tp,
-           file_or_folder='file',
-           name_length='auto')
+        
 
-rename(path='C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6 raw data',
-           file_or_folder='folder',
-           name_length='auto')"""
-
-
-"""no_leading_zeros_rename(path='C:/Users/areil/Desktop/Terra/Unprocessed Animations/Germarium6 raw data',
-       file_or_folder='folder',
-       name_length=1)"""
-
-
-rename(path="C:/Users/areil/Desktop/Terra/Unprocessed Animations/13DecScene4PngTraces",
-        file_or_folder='folder',
-        name_length='auto')
-
-"""
-timepoint_folders = [f.path for f in os.scandir('C:/Users/areil/Desktop/Terra/Unprocessed Animations/August 1 PNG') if f.is_dir()]
-print(len(timepoint_folders))
-"""
-
-for cur_tp in [f.path for f in os.scandir("C:/Users/areil/Desktop/Terra/Unprocessed Animations/13DecScene4PngTraces") if f.is_dir() ]:
+for cur_tp in [f.path for f in os.scandir("C:/Users/areil/Desktop/Terra/Unprocessed Animations/A1 manual data") if f.is_dir() ]:
     rename(path=cur_tp,
            file_or_folder='file',
            name_length='auto')

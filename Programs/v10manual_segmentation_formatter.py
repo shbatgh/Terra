@@ -29,10 +29,16 @@ import sys
 import os
 import math
 
+import adjust_algorithm
+import sort_angle_algorithm
+import sort_looseTravellingSalesman_algorithm
+
+sparse = True
+
 sys.setrecursionlimit(1500)
 
 
-def get_surrounding_colored_points(pix, point_coords, color):                       #returns dictionary: {[*x,y*]: (*color*), [*x,y*]: (*color*), [*x,y*]: (*color*)}
+def get_surrounding_colored_points(pix, point_coords, color, loose):                       #returns dictionary: {[*x,y*]: (*color*), [*x,y*]: (*color*), [*x,y*]: (*color*)}
     coords1 = [point_coords[0] - 1, point_coords[1] - 1]
     coords2 = [point_coords[0] - 1, point_coords[1]]
     coords3 = [point_coords[0] - 1, point_coords[1] + 1]
@@ -44,9 +50,31 @@ def get_surrounding_colored_points(pix, point_coords, color):                   
     coords7 = [point_coords[0] + 1, point_coords[1]]
     coords8 = [point_coords[0] + 1, point_coords[1] + 1]
 
-    
-
     coords_list = [coords1, coords2, coords3, coords4, coords5, coords6, coords7, coords8]
+
+    if loose:
+        ys = [-2, -1, 0, 1, 2]
+        #left_side
+        for y in ys:
+            coords_list.append([point_coords[0] - 2, point_coords[1] + y])
+        #right_side
+        for y in ys:
+            coords_list.append([point_coords[0] + 2, point_coords[1] + y])
+
+        xs = [-1, 0, 1]
+        #bottom_side
+        for x in xs:
+            coords_list.append([point_coords[0] + x, point_coords[1] - 2])
+        #top_side
+        for x in xs:
+            coords_list.append([point_coords[0] + x, point_coords[1] + 2])
+
+    #Check if coords are in image boundaries.
+    if not (1<point_coords[0] and point_coords[0]<width-2 and 1<point_coords[1] and point_coords[1]<height-2):
+        for coord in coords_list.copy():
+            if not (0<=coord[0] and coord[0]<=width-1 and 0<=coord[1] and coord[1]<=height-1):
+                coords_list.remove(coord)
+
     surrounding_points = []
 
     for coord in coords_list:
@@ -61,11 +89,12 @@ def create_outline_lists(pix, starting_point, color): #maybe still need checked_
     final_point_list =[starting_point]
     queued_points = get_surrounding_colored_points(pix = pix,
                                                    point_coords=starting_point,
-                                                   color = color)
+                                                   color = color,
+                                                   loose=True)
     while len(queued_points) >0:
         temporary_list = []
         for q_point in queued_points:
-            for pos_new_point in get_surrounding_colored_points(pix=pix, point_coords=q_point, color=color):
+            for pos_new_point in get_surrounding_colored_points(pix=pix, point_coords=q_point, color=color, loose=True):
                 if (pos_new_point not in temporary_list) and (pos_new_point not in final_point_list):
                     temporary_list.append(pos_new_point)
         queued_points = temporary_list
@@ -80,67 +109,39 @@ def add_to_dict(dict, color, group):
     else:
         dict[color] = [group]
 
-
-def sortFn(coords):
-    P_x, P_y = coords[0], coords[1]
-    return(math.atan((P_y-center[1])/(P_x-center[0])))      #Returns angle made by the center, the point, and the x-axis (Adjusted to the center)
-
-
-def split_group(group_lst, C_x):
-    right_group = []
-    left_group = []
-    for point in group_lst:
-        if point[0] > C_x:      #Anything to the right of the center point
-            right_group.append(point)
-        else:
-            left_group.append(point)
-    return(right_group, left_group)
-
-
-def adjusted_group(group, reference_point, rotation_point):
-    ox, oy = reference_point[0], reference_point[1]
-
-    if not should_rotate:
-        return([[coord[0]-ox, coord[1]-oy] for coord in group])
-    
-    result = []
-    angle = -math.atan((rotation_point[1]-oy)/(rotation_point[0]-ox))
-
-    for coord in group:
-        px, py = coord[0], coord[1]
-        qx = math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
-        qy = math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
-        result.append([qx,qy])
-
-    result.append(result[0])        #To complete the loop
-    result.append(result[1])
-    #result.append(result[1])
-    return(result)
-
 #Remember to adjust to reference point
-def sorted_group(group, reference_point, rotation_point):         #Puts all pixels of a single color in a group, regards all pixels of that color as the same structure/cell
-    if sort and len(group) > 1:
-        #group = large_group_sorter.sort_group(group)
-        global center
-        x_avg = int(sum([coord[0] for coord in group])/len(group))
-        y_avg = sum([coord[1] for coord in group])/len(group)
-        center = (x_avg +0.5, y_avg)       #Adjusting a tiny bit so that the arctan doesn't equal 0
+def sorted_group(group, reference_point, rotation_point, color):       #Color is added as an argument in case we want to use different sorting algorithms for different colors
 
-        right_group, left_group = split_group(group_lst=group,
-                                              C_x=center[0])
+    if color in [(0,0,255), (0,255,255)]:     #(0,0,255), (0,255,255), (255,0,255), (0,255,0)
+        sorted_group = sort_looseTravellingSalesman_algorithm.sort_group(group)
+    else:
+        sorted_group = sort_angle_algorithm.sort_group(sort, group)
+
+    adjusted_group = adjust_algorithm.adjust_group(group =sorted_group,
+                                                   reference_point = reference_point,
+                                                   rotation_point = rotation_point,
+                                                   should_rotate = should_rotate)
+    
         
-        right_group.sort(key=sortFn)
-        left_group.sort(key=sortFn)
-        group = right_group + left_group
+    #Takes only some points----
+    if sparse:
+        fin_coords = []
+        step = 1
+        if color in [(0,255,0), (255,0,255), (255,0,0)]:
+            step = 20
+        for i in range (0, len(adjusted_group), step):
+            fin_coords.append(adjusted_group[i])
+        fin_coords.append(fin_coords[0])
+        fin_coords.append(fin_coords[1])
+        fin_coords.append(fin_coords[2])
+        return(fin_coords)
 
-    return(adjusted_group(group =group,
-                          reference_point = reference_point,
-                          rotation_point = rotation_point))
+    return(adjusted_group)
 
 
 
 def format_slice(slice_path, reference_point, rotation_point):
-    print("\n\n New Slice")
+    #print("New Slice")
     slice_dict = {}
 
     cur_img = Image.open(slice_path)
@@ -151,7 +152,7 @@ def format_slice(slice_path, reference_point, rotation_point):
         for y in range(height):
             color = pix[x,y][:3]
             if (color != (0,0,0) and color != (255, 255, 255)) and ([x,y] not in checked_points):
-                print(color)
+                #print(color)
                 cur_group = create_outline_lists(pix=pix,
                                                  starting_point= [x,y],
                                                  color=color)
@@ -159,7 +160,7 @@ def format_slice(slice_path, reference_point, rotation_point):
                 
                 add_to_dict(dict=slice_dict,
                             color=color,
-                            group=sorted_group(cur_group, reference_point, rotation_point))
+                            group=sorted_group(cur_group, reference_point, rotation_point, color))
         
     return(slice_dict)
 
@@ -168,7 +169,7 @@ def format_slice(slice_path, reference_point, rotation_point):
 
 def format_stack(timepoint, reference_point, rotation_point):                #timepoint is the path to the stack
     cur_path = timepoint_folders[timepoint]
-    print("Formatting stack " + os.path.basename(os.path.normpath(cur_path)))       #takes last parts
+    print("\nFormatting stack " + os.path.basename(os.path.normpath(cur_path)))       #takes last parts
     slice_images = [ f.path for f in os.scandir(cur_path) if f.is_file() ]
     
     n_slices = len(slice_images)                                        #Might raise an error

@@ -48,7 +48,12 @@ def strategy_closest_point():
 		cur_point = ordered_point_list[point_index]
 		Point.swap(Point.next_closest_point(cur_point, ordered_point_list), point_index + 1, ordered_point_list)
 	print("Route Length: ", evaluate_route())
-	
+
+
+#This function, if called, adds surrounding points. Makes the travelling salesman solution looser....
+#Looseness on a scale from 1 to 4
+#Only works if the outline is sorted BEFORE adjusted (rotated and translated)
+
 
 def sort_group(group):
 	global ordered_point_list
@@ -64,3 +69,4 @@ def sort_group(group):
 	
 	return(ordered_coords)
 	
+

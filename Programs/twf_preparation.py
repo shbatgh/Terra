@@ -17,288 +17,235 @@ Each timepoint currently has the following format:
 ]
 """
 
-
-
-import os
+import ast
 import math
-import random
+import triple_wireframe
 
-def create_center_dict(slice_outlines):     #takes txt_outlines for a single slice and converts it into a dictionary in the form {center: outlines, ...}
-    center_dict = {}
-    for outline in slice_outlines:
-        center = (sum([coord[0] for coord in outline])/len(outline), sum([coord[1] for coord in outline])/len(outline))
-        
-        center_dict[center] = outline
-    return(center_dict)
-
-def line_to_group(line):
-    group = [[int(line[i]), int(line[i+1])] for i in range(0, len(line), 2)]       #Put into x and y
-    group+= [group[0], group[1], group[2]]                                         #Loops around so wireframes are complete
-    return(group)
-
-def adjustment_off_first_slice(slice_paths):    #Takes slice paths list, and returns how many first txt_outlines are missing. For example, if slice paths starts with 2.txt..., there is 1 missing outline
-
-    first_slice = ""
-    break_marker = False
-
-    searching_for_num = list(os.path.basename(os.path.normpath(slice_paths[0])))
-    for char in searching_for_num:
-        if char.isdigit():
-            first_slice += char
-            break_marker = True
-        elif break_marker == True:
-            break
-    first_slice = int(first_slice)
-
-    return (first_slice-1)
+import copy
 
 
+cell_count = 0
+cells = []
 
-
-def create_stack_list(stack_path):      #Takes the directory where all txt_outlines are stored, has elements in the form {center: outlines....}
-    stack_list = []
-    slice_paths = [f.path for f in os.scandir(stack_path) if f.is_file()]
-
-    #print("Length slice_paths,", len(slice_paths))
-
-    for slice_txt_path in slice_paths:
-        slice_outlines = []
-        f = open(slice_txt_path, "r")          #Groups come from segmentation data    
-        for line in f:
-            line = line.split(',')
-            slice_outlines.append(line_to_group(line))
-
-        stack_list.append(create_center_dict(slice_outlines))
-    
-    for i in range(adjustment_off_first_slice(slice_paths)):
-        stack_list = [{}] + stack_list
-
-    print("Stack list length", len(stack_list))
-
-    return(stack_list)
-    
-
-
-#------------------------------By now, we have a stack list, with each element being a dictionary {center: outline, center: outline, ...}
-#C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test2-A1 AI segmentations/seg_t4/txt_outlines
-
-
-colors = [(255,0,0), (0,255,0), (0,0,255), (0,0,0), (255,255,255), (255,255,0), (255,0,255), (0,255,255), (255,128,0), (255,0,128), (128,255,0), (0,255,128), (0,128,255), (128,0,255), (128,128,128), (64,0,0), (0,64,0), (0,0,64), (64,64,0), (64,0,64), (0,64,64)]
-
-def find_cell_perimeter(outline):       #Unused so far
-    return(len(outline))
-
-def create_center_list(stack_list):         #Creates an empty list of dictionaries. The dictionaries will be in the form 
-    center_list=[]
-    for slice_num in range (len(stack_list)):
-        center_list.append({})
-    return (center_list)
 
 class Cell:         #Cell class
-    def __init__(self, id, starting_slice, initial_center, initial_outline, c_color):
+    def __init__(self, id, starting_slice, initial_outline, c_color):
         self.id = id
-        self.starting_slice = starting_slice
-        self.centers = [initial_center]
-        self.outlines = [initial_outline]
         self.color = c_color
-    
-    def find_3D_center(self):           #Unused so far
-        x_avg = sum([coord[0] for coord in self.centers])/len(self.centers)
-        y_avg = sum([coord[1] for coord in self.centers])/len(self.centers)
-        z_avg = (3/0.198)* (self.starting_slice + (len(self.centers)/2))                                          #(3/0.198) conversion from x,y to z. Second term gets average slice
-        return([x_avg, y_avg, z_avg])
 
+        self.starting_slice = starting_slice
+        self.top_slice = starting_slice
 
-
-
-def create_cell(starting_slice, initial_center, initial_outline):           #creates a cell
-    global cell_count
-    cell_count+=1
-    new_cell = Cell(id = 'Cell' + str(cell_count),
-                    starting_slice=starting_slice,
-                    initial_center=initial_center,
-                    initial_outline=initial_outline,
-                    c_color = colors[cell_count%len(colors)])
-    
-    cells.append(new_cell)
-
-    global center_list
-    center_list[starting_slice][new_cell.id] = initial_center
-
-def identify_cell(cell_id):
-    for cell in cells:
-        if cell.id == cell_id:
-            return(cell)
-
-def add_to_cell(id, center, outline):           #Adds outlines and centers to cells
-    global center_list
-    cell = identify_cell(cell_id=id)
-    cell.centers.append(center)
-    cell.outlines.append(outline)
-
-    #print("starting slice", cell.starting_slice)
-    #print("how many slices up?", len(cell.centers)-1)
-
-    center_list[cell.starting_slice + len(cell.centers)-1][cell.id] = center
-    
-
-def initial_cells (stack_list):     #Creates sells on the first slice
-    for center,outline in stack_list[0].items():
-        create_cell(starting_slice=0,
-                    initial_center=center,
-                    initial_outline=outline)
-
-def group_cells(stack_list):
-    add_count = 0
-    global center_list, cell_count
-    for cur_slice_num in range (1, len(stack_list)):
-        slice_dict = stack_list[cur_slice_num]
-        prev_center_dict = center_list[cur_slice_num - 1]
-        for c_center, c_outline in slice_dict.items():
-            cell_found_marker = False
-            for prev_id, prev_center in prev_center_dict.items():
-                prev_cell = identify_cell(prev_id)
-                if math.dist(c_center, prev_center) <radius and prev_cell.starting_slice+len(prev_cell.centers)==cur_slice_num:
-                    add_count+=1
-                    add_to_cell(id=prev_id,
-                                center=c_center,
-                                outline=c_outline)
-                    cell_found_marker = True
-                    break
-            
-            if cell_found_marker == False:
-                create_cell(starting_slice=cur_slice_num,
-                            initial_center=c_center,
-                            initial_outline=c_outline)
-    print("Segmentations belonging to other cells:", add_count)
-    print("Number of cells:", cell_count)
-
-
-
-#---------------Now I needa clean up stuff (cells that are too long are really 2 cells on top of eachother)
-
-
-
-
-
-
-#----------------------------Up to now, we have a list of cell objects, with atributes id, starting_slice, centers, outlines, and color------
-
-def identify_cell_from_center(center, cell_list):
-    for cell in cell_list:
-        if center in cell.centers:
-            return(cell)
-
-def adjust_outline(outline, ref_point):
-    ref_x, ref_y = ref_point[0], ref_point[1]
-    adjusted_outline = []
-    for coord in outline:
-        cur_x, cur_y = coord[0], coord[1]
-        adjusted_outline.append([cur_x-ref_x, cur_y-ref_y])
-    return(adjusted_outline)
-
-
-def add_outline_to_dict(color, dict, outline):
-    if color in dict.keys():
-        dict[color].append(outline)
-    else:
-        dict[color] = [outline]
-
-
-
-def format_stack_list(stack_list, ref_point, cell_list):
-    formatted_stack_list = []
-    for cur_slice_dict in stack_list:
-        formatted_slice_dict = {}
-        for cur_center, cur_outline in cur_slice_dict.items():
-            cur_cell = identify_cell_from_center(cur_center, cell_list)
-            adjusted_outline = adjust_outline(outline=cur_outline,
-                                              ref_point=ref_point)
-            add_outline_to_dict(color=cur_cell.color,
-                                dict=formatted_slice_dict,
-                                outline=adjusted_outline)
-        formatted_stack_list.append(formatted_slice_dict)
-    return(formatted_stack_list)
-
-
-
-#-------------Add a section of code that changes the colors of cells so that cells are tracked thru timepoints
-
-
-def create_ThreeD_center_dict(cells):       #Creates dictionary for a single frame in the form:       {Cell: 3dcenter}
-    ThreeD_center_dict = {}
-    for cur_cell in cells:
-        ThreeD_center_dict[cur_cell] = cur_cell.find_3D_center()
-    return(ThreeD_center_dict)
-
-def track_cells(num_timepoints):
-    for cur_tp in range (1, num_timepoints):
-        matched_cells = {}
-        prev_TDCD = create_ThreeD_center_dict(all_cells[cur_tp-1])
-        cur_TDCD = create_ThreeD_center_dict(all_cells[cur_tp])
-        #print(list(cur_TDCD.values()))
-        for cur_cell, cur_center in cur_TDCD.items():
-            cur_shortest_dist = math.dist(cur_center, list(prev_TDCD.values())[0])
-            corresponding_cell = list(prev_TDCD.keys())[0]
-            for prev_cell, prev_center in prev_TDCD.items():
-                temp_dist = math.dist(cur_center, prev_center)
-                if temp_dist < cur_shortest_dist:
-                    cur_shortest_dist = temp_dist
-                    corresponding_cell = prev_cell
-            
-            #Now add the shortest distance cell to the matched_cells dict, but make sure it doesn't overlap with another cell
-            if corresponding_cell in matched_cells.keys():
-                if cur_shortest_dist < math.dist(matched_cells[corresponding_cell].find_3D_center(), corresponding_cell.find_3D_center()):
-                    matched_cells[corresponding_cell] = cur_cell
-            else:
-                matched_cells[corresponding_cell] = cur_cell
+        self.centers = [find_center(initial_outline)]
+        self.outlines = [initial_outline]
         
-        #Now change the colors of the tracked cells
-        for p_cell, c_cell in matched_cells.items():
-            c_cell.color = p_cell.color
-            
 
-
-#--------- Up to now, we render a full stack. Combine everything to make it multiple timepoints
-
-radius = 10
-path_to_tps = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test2-A1 AI segmentations"
-ref_list = [[111, 80], [100, 121], [103, 123], [105, 118], [112, 111], [105, 113], [105, 108], [114, 99], [103, 105], [106, 104], [100, 108], [97, 102], [98, 101], [100, 101], [96, 99], [100, 95], [99, 95], [99, 95], [100, 93], [107, 83], [107, 83], [114, 75], [106, 79], [112, 76], [114, 79], [111, 81], [101, 89], [109, 86], [110, 85], [108, 87], [107, 87], [104, 87], [108, 84], [95, 96], [88, 97], [96, 92], [89, 94], [84, 101], [83, 99], [83, 101], [80, 109], [74, 109], [88, 118], [120, 122], [141, 140], [162, 161]]
-#Got from program outputs, test4 reflist A1
-
-
-stack_paths = [os.path.normpath(f.path) + '/txt_outlines' for f in os.scandir(path_to_tps) if f.is_dir()]
-all_cells = []
-all_stack_lists = []
-frame_dict = {}
-
-tp_num = -1
+        global cell_count, cells
+        cell_count +=1
+        cells.append(self)
+    
+    def add_outline(self, new_outline):
+        self.top_slice +=1
+        self.outlines.append(new_outline)
+        self.centers.append(find_center(new_outline))
 
 
 
-for cur_stack_path in stack_paths:
-    tp_num +=1
-    print("\n\nStack: ", tp_num)
-    cell_count = 0      #Number of cells, used for making cell_id
-    cells = []          #list containing all cell objects. Gets reset every iteration, so is added to a separate list at the end
-    stack_list = create_stack_list(stack_path=cur_stack_path)
-    center_list = create_center_list(stack_list)
-    initial_cells(stack_list)
-    group_cells(stack_list)
 
-    all_cells.append(cells)
-    all_stack_lists.append(stack_list)
 
-track_cells(num_timepoints=len(stack_paths))
 
-#Convert to txt_file
-#print(all_stack_lists)
-for cur_tp in range(len(stack_paths)):
-    print("Writing Stack: ", cur_tp)
-    formatted_stack_list = format_stack_list(stack_list = all_stack_lists[cur_tp], 
-                                             ref_point = ref_list[cur_tp],
-                                             cell_list=all_cells[cur_tp])
-    frame_dict[cur_tp] = formatted_stack_list
- 
-with open("C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test17-A1 entire AI Formatted new.txt", 'w') as f:
-    f.write(str(frame_dict))
+
+def find_center(point_list):                 #Finds the center of a outline
+    length = len(point_list)
+    if length == 0:
+        return(None)
+    
+    x_sum, y_sum = 0, 0
+    for [x, y] in point_list:
+        x_sum +=x
+        y_sum +=y
+    return((x_sum/length, y_sum/length))
+
+def approx_width(point_list, x_or_y):
+    comp = 0
+    if x_or_y =="y":
+        comp = 1
+    res_min = point_list[0][comp]
+    res_max = point_list[1][comp]
+    for p in point_list:
+        val = p[comp]
+        if val < res_min:
+            res_min = val
+        elif val > res_max:
+            res_max = val
+    return(res_max - res_min)
+    
+
+def find_segs(slice_dict, color):            #Finds all segmentations of a certain color on a slice
+    if color not in slice_dict.keys():
+        return([])
+    return(slice_dict[color].copy())
+
+def matchedSortFn(e):
+    return(e[1])
+
+def match_cells(cur_cells, prev_cells):      #Matches up all combinations between cells in the slice above and below. Sorts by the distance between centers.
+    
+    matched_list = []                        #Each element is 2 paired cells. Each element has the format: [{center1: outline1, center2: outline2}, distance]
+    for cur_c in cur_cells:
+        cur_center = find_center(cur_c)
+        for prev_c in prev_cells:
+            prev_center = find_center(prev_c)
+            matched_list.append([{cur_center: cur_c, prev_center: prev_c}, math.dist(cur_center, prev_center)])
+    matched_list.sort(key = matchedSortFn)
+    return(matched_list)
+
+
+def remove_pairs(matched_list, center):                    #Removes all elements in a list that have an outline with the following center
+    new_matched_list = []
+    for pair in matched_list:
+        if (center not in pair[0].keys()):                 #Creates new list, only adds elements that do not have the center.
+            new_matched_list.append(pair)
+    return(new_matched_list)
+
+def find_max_error(point_list1, point_list2):              #Finds the maximum error a cell can change position in different slices to still be considered the same cell.
+    approx_r1 = (approx_width(point_list1, "x") + approx_width(point_list1, "y"))/2         #Approximates the radius to do this.
+    approx_r2 = (approx_width(point_list2, "x") + approx_width(point_list2, "y"))/2
+    result = max(approx_r1, approx_r2) * 0.5      #Change this multiplier. Smaller for tighter ranges to classify two segs as the same cell.
+    return(result)
+
+def appears_before(matched_list, center, loc):
+    found = False
+    for e in matched_list[:loc]:
+        if center in e[0].keys():
+            found = True
+            break
+    return(found)
+
+def tag_centers(matched_list, center, starting_idx):
+    tagged = []
+    for cur_idx in range(starting_idx, len(matched_list)):
+        pair = matched_list[cur_idx]
+        c_centers = list(pair[0].keys()).copy()
+        if center in c_centers:
+            c_centers.remove(center)
+            center_pos_tag = c_centers[0]
+            if not appears_before(matched_list=matched_list, center=center_pos_tag, loc=cur_idx):
+                tagged.append(center_pos_tag)
+    return(tagged)
+
+
+def filter_pairs(matched_list):
+    filtered = []
+    idx = 0
+    while idx < len(matched_list):
+        filtered.append(matched_list[idx])
+
+        paired_centers = list(matched_list[idx][0].keys())
+        tagged = [paired_centers[0], paired_centers[1]]
+        tagged += tag_centers(matched_list=matched_list, center=paired_centers[0], starting_idx=idx+1)
+        tagged += tag_centers(matched_list=matched_list, center=paired_centers[1], starting_idx=idx+1)
+
+        for center in tagged:
+            matched_list = remove_pairs(matched_list = matched_list, center=center)
+    new_filtered = []
+    for pair in filtered:
+        outlines = list(pair[0].values())
+        max_error = find_max_error(outlines[0], outlines[1])
+        if pair[1]<max_error:
+            new_filtered.append(pair)
+    return(new_filtered)
+
+def identify_cell(center, color):
+    for c_obj in cells:
+        if (c_obj.color == color) and (center in c_obj.centers):
+            return(c_obj)
+
+    print("No Cell Found with center: ", center)
+    return(None)
+
+
+def compute_slice(stack_list, slice_num, color):
+    cur_segs = find_segs(slice_dict=stack_list[slice_num], color=color)
+    prev_segs = find_segs(slice_dict=stack_list[slice_num-1], color=color)
+
+    if len(cur_segs) == 0:
+        #print("No cells on current slice")
+        return()
+    if len(prev_segs) == 0:
+        for seg in cur_segs:
+            new_cell = Cell(id = "Cell"+str(color)+" "+str(cell_count),
+                            starting_slice = slice_num,
+                            initial_outline = seg,
+                            c_color = color)
+        return()
+    
+    matched_list = match_cells(cur_cells=cur_segs,
+                               prev_cells=prev_segs)
+    
+    filtered_list = filter_pairs(matched_list=matched_list)
+
+    for pair in filtered_list:
+        cur_outline = list(pair[0].values())[0]
+        prev_center = list(pair[0].keys())[1]
+
+        cell_obj = identify_cell(prev_center, color)
+        cell_obj.add_outline(new_outline=cur_outline)
+
+        cur_segs.remove(cur_outline)
+    
+    for seg in cur_segs:
+        new_cell = Cell(id = "Cell"+str(color)+" "+str(cell_count),
+                        starting_slice = slice_num,
+                        initial_outline = seg,
+                        c_color = color)
+
+def first_slice_cells(slice_dict, color):
+    cur_segs = find_segs(slice_dict=slice_dict, color=color)
+    for seg in cur_segs:
+        new_cell = Cell(id = "Cell"+str(color)+" "+str(cell_count),
+                        starting_slice = 0,
+                        initial_outline = seg,
+                        c_color = color)
+
+def compute_stack(stack_list, color):
+    global cells
+    cells = []
+    first_slice_cells(slice_dict=stack_list[0],
+                      color=color)
+    for slice_num in range(1, len(stack_list)):
+        compute_slice(stack_list=stack_list,
+                      slice_num=slice_num,
+                      color=color)
+
+
+def get_data(path):
+    with open(path, 'r') as f:   #blender_format_adjusted or blender_format
+        d = f.read()
+
+    data = ast.literal_eval(d)
+    return(data)
+
+def create_wireframes(path, colors, output_dir):
+    data = get_data(path=path)
+
+    for color in colors:
+        print("\n\nCurrent color: ", color)
+        result = {} 
+
+        for tp in range(0, len(data.keys())):
+            result[tp] = []
+            compute_stack(stack_list=data[tp],
+                          color = color)
+            for cell in cells:       
+                wfsx = triple_wireframe.triple_wireframe_creation(outline_list = copy.deepcopy(cell.outlines), x_or_y = "x", starting_slice=cell.starting_slice, wf_dist_arg=(3/0.198)/1, wf_offset_arg=1.25)
+                wfsy = triple_wireframe.triple_wireframe_creation(outline_list = copy.deepcopy(cell.outlines), x_or_y = "y", starting_slice=cell.starting_slice, wf_dist_arg=(3/0.198)/1, wf_offset_arg=1.25)
+                result[tp].append({color : wfsx+wfsy})
+        with open(output_dir + "R" + str(color[0]) + "G" + str(color[1]) + "B" + str(color[2]) +".txt", 'w') as f:
+            f.write(str(result))
+
+
+
+create_wireframes(path = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/For TWF First Animation Rotated.txt", #"C:/Users/areil/Desktop/Terra/Programs/Program Outputs/GC Iso 21tps.txt",
+                  colors = [(255,0,0), (255,0,255), (0,0,255), (255,0,0), (0,255,255), (255,100,0)],      #(255,0,0), (255,0,255), (0,0,255), (255,0,0), (0,255,255), (255,100,0)
+                  output_dir = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/PRES TWF Animation1 DENSE/")

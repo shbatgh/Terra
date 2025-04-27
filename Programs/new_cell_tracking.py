@@ -1,6 +1,5 @@
 import os
 import math
-import random
 
 def create_center_dict(slice_outlines):     #takes txt_outlines for a single slice and converts it into a dictionary in the form {center: outlines, ...}
     center_dict = {}
@@ -61,7 +60,8 @@ def create_stack_list(stack_path):      #Takes the directory where all txt_outli
 #C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test2-A1 AI segmentations/seg_t4/txt_outlines
 
 
-colors = [(255,0,0), (0,255,0), (0,0,255), (0,0,0), (255,255,255), (255,255,0), (255,0,255), (0,255,255), (255,128,0), (255,0,128), (128,255,0), (0,255,128), (0,128,255), (128,0,255), (128,128,128), (64,0,0), (0,64,0), (0,0,64), (64,64,0), (64,0,64), (0,64,64)]
+#colors = [(255,0,0), (0,255,0), (0,0,255), (0,0,0), (255,255,255), (255,255,0), (255,0,255), (0,255,255), (255,128,0), (255,0,128), (128,255,0), (0,255,128), (0,128,255), (128,0,255), (128,128,128), (64,0,0), (0,64,0), (0,0,64), (64,64,0), (64,0,64), (0,64,64)]
+colors = [(250,0,0), (0,250,0), (0,0,250), (10,0,0)]#Take this out later. 
 
 def find_cell_perimeter(outline):       #Unused so far
     return(len(outline))
@@ -161,19 +161,63 @@ def group_cells(stack_list):
 
 
 #----------------------------Up to now, we have a list of cell objects, with atributes id, starting_slice, centers, outlines, and color------
+def sortFn(coords):
+    P_x, P_y = coords[0], coords[1]
+    return(math.atan((P_y-center[1])/(P_x-center[0])))      #Returns angle made by the center, the point, and the x-axis (Adjusted to the center)
+
+
+def split_group(group_lst, C_x):
+    right_group = []
+    left_group = []
+    for point in group_lst:
+        if point[0] > C_x:      #Anything to the right of the center point
+            right_group.append(point)
+        else:
+            left_group.append(point)
+    return(right_group, left_group)
+
+#Remember to adjust to reference point
+
 
 def identify_cell_from_center(center, cell_list):
     for cell in cell_list:
         if center in cell.centers:
             return(cell)
 
-def adjust_outline(outline, ref_point):
-    ref_x, ref_y = ref_point[0], ref_point[1]
-    adjusted_outline = []
+def adjust_outline(outline, ref_point):     #ONLY WORKS FOR ONE ROTATION POINT. WHICH IS DECLARED GLOBALLY. Added sort. Not needed for Cellpose
+    if sort and len(outline) > 1:
+        x_avg = int(sum([coord[0] for coord in outline])/len(outline))
+        y_avg = sum([coord[1] for coord in outline])/len(outline)
+        global center
+        center = (x_avg +0.5, y_avg)       #Adjusting a tiny bit so that the arctan doesn't equal 0
+
+        right_group, left_group = split_group(group_lst=outline,
+                                                C_x=center[0])
+        
+        right_group.sort(key=sortFn)
+        left_group.sort(key=sortFn)
+        outline = right_group + left_group
+
+
+
+    ox, oy = ref_point[0], ref_point[1]
+
+    if not should_rotate:
+        return([[coord[0]-ox, coord[1]-oy] for coord in outline])
+    
+    result = []
+    angle = -math.atan((rotation_point[1]-oy)/(rotation_point[0]-ox))
+
     for coord in outline:
-        cur_x, cur_y = coord[0], coord[1]
-        adjusted_outline.append([cur_x-ref_x, cur_y-ref_y])
-    return(adjusted_outline)
+        px, py = coord[0], coord[1]
+        qx = math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
+        qy = math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
+        result.append([qx,qy])
+
+    result.append(result[0])        #To complete the loop
+    result.append(result[1])
+    #result.append(result[1])
+    return(result)
 
 
 def add_outline_to_dict(color, dict, outline):
@@ -243,12 +287,17 @@ radius = 10
 path_to_tps = "C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test2-A1 AI segmentations"
 ref_list = [[111, 80], [100, 121], [103, 123], [105, 118], [112, 111], [105, 113], [105, 108], [114, 99], [103, 105], [106, 104], [100, 108], [97, 102], [98, 101], [100, 101], [96, 99], [100, 95], [99, 95], [99, 95], [100, 93], [107, 83], [107, 83], [114, 75], [106, 79], [112, 76], [114, 79], [111, 81], [101, 89], [109, 86], [110, 85], [108, 87], [107, 87], [104, 87], [108, 84], [95, 96], [88, 97], [96, 92], [89, 94], [84, 101], [83, 99], [83, 101], [80, 109], [74, 109], [88, 118], [120, 122], [141, 140], [162, 161]]
 #Got from program outputs, test4 reflist A1
+ref_list = [[111, 80]]                  #THIS IS FOR SPECIFIC GERMARIUM. SIDS PNG SEPT 2024
+rotation_point = [270, 277]
 
+should_rotate = True
 
 stack_paths = [os.path.normpath(f.path) + '/txt_outlines' for f in os.scandir(path_to_tps) if f.is_dir()]
+stack_paths=["C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Green-Only-processed_images"]       #THIS IS FOR SPECIFIC GERMARIUM. SIDS PNG SEPT 2024
 all_cells = []
 all_stack_lists = []
 frame_dict = {}
+sort = True
 
 tp_num = -1
 
@@ -278,5 +327,5 @@ for cur_tp in range(len(stack_paths)):
                                              cell_list=all_cells[cur_tp])
     frame_dict[cur_tp] = formatted_stack_list
  
-with open("C:/Users/areil/Desktop/Terra/Programs/Program Outputs/test17-A1 entire AI Formatted new.txt", 'w') as f:
+with open("C:/Users/areil/Desktop/Terra/Programs/Program Outputs/Green Only Png Sept 2024 AI Formatted new.txt", 'w') as f:
     f.write(str(frame_dict))
